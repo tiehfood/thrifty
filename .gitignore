@@ -1,0 +1,7 @@
+.idea
+.pnpm-store
+.scannerwork
+sonar-project.properties
+data
+**.sqlite
+**/.DS_Store

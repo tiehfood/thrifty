@@ -1,0 +1,32 @@
+{
+	"name": "ui",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev --host",
+		"build": "vite build",
+		"preview": "vite preview --host",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+	},
+	"devDependencies": {
+		"@number-flow/svelte": "^0.3.3",
+		"@poppanator/sveltekit-svg": "^5.0.0",
+		"@sveltejs/adapter-auto": "^4.0.0",
+		"@sveltejs/adapter-static": "^3.0.8",
+		"@sveltejs/kit": "^2.16.0",
+		"@sveltejs/vite-plugin-svelte": "^5.0.3",
+		"autoprefixer": "^10.4.20",
+		"flowbite": "^2.5.2",
+		"flowbite-svelte": "^0.47.4",
+		"svelte": "^5.19.0",
+		"svelte-check": "^4.1.4",
+		"tailwindcss": "^3.4.17",
+		"typescript": "^5.7.3",
+		"vite": "^6.0.7"
+	},
+	"dependencies": {
+		"debounce": "^2.2.0"
+	}
+}
