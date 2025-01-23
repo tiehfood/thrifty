@@ -164,7 +164,7 @@
                     {#if (newFlow.icon === undefined)}
                         <span>Icon (optional)</span>
                     {:else }
-                        <img src={newFlow.icon} alt="Icon" />
+                        <img class="aspect-square h-22 w-22" src={newFlow.icon} alt="Icon" />
                     {/if}
                 </button>
             </div>
@@ -185,5 +185,5 @@
 
 <Footer>
     <hr class="my-6 border-gray-200 sm:mx-auto lg:my-8" />
-    <FooterCopyright href="/" by="tiehfood" copyrightMessage="| All Rights Reserved"/>
+    <FooterCopyright href="https://github.com/tiehfood/thrifty" by="tiehfood" copyrightMessage="| All Rights Reserved"/>
 </Footer>

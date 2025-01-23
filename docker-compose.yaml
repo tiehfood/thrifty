@@ -3,7 +3,7 @@ services:
     container_name: traefik
     image: traefik:3.3
     ports:
-      - "8080:80"
+      - "9090:80"
     environment:
       - TRAEFIK_GLOBAL_SENDANONYMOUSUSAGE=false
       - TRAEFIK_PROVIDERS_DOCKER=true
