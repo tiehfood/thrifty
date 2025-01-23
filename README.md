@@ -36,6 +36,10 @@ docker compose -f docker-compose.yml up -d
 ```
 The app should now be available at `http://localhost:9090`.
 
+### Tips
+#### Want to use `$` as the currency symbol?
+>Change `currency: 'EUR'` to `currency: 'USD'` in [+page.svelte](ui/src/routes/+page.svelte) and start the app like mentioned above.
+
 
 ## Developing
 
