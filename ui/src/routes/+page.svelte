@@ -98,7 +98,7 @@
                             </p>
                         </div>
                         <div class="inline-flex items-center text-base font-semibold text-gray-900">
-                            <NumberFlow animated={false} format={{ style: 'currency', currency: 'EUR', trailingZeroDisplay: 'stripIfInteger' }} value={flow.amount} />
+                            <NumberFlow locales="de-DE" animated={false} format={{ style: 'currency', currency: 'EUR', trailingZeroDisplay: 'stripIfInteger' }} value={flow.amount} />
                         </div>
                     </div>
                     {#if (sharedState.isEditMode)}
@@ -122,7 +122,7 @@
                     </p>
                 </div>
                 <div class="inline-flex items-center text-base font-black text-gray-900">
-                    <NumberFlow plugins={[continuous]} format={{ style: 'currency', currency: 'EUR', trailingZeroDisplay: 'stripIfInteger' }} value={total} />
+                    <NumberFlow locales="de-DE" plugins={[continuous]} format={{ style: 'currency', currency: 'EUR', trailingZeroDisplay: 'stripIfInteger' }} value={total} />
                 </div>
             </div>
         </Card>
