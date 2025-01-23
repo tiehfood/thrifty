@@ -16,7 +16,7 @@
 
     async function getFlows() {
         try {
-            let response = await fetch("http://localhost:8080/api/flows")
+            let response = await fetch("api/flows")
             if (!response.ok) throw new Error(response.statusText);
             flows = await response.json();
             setTotal();
@@ -28,7 +28,7 @@
     async function uploadFlow(flow: Flow) {
         try {
             console.log(JSON.stringify(flow));
-            const response = await fetch("http://localhost:8080/api/flows", {
+            const response = await fetch("api/flows", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -43,7 +43,7 @@
 
     async function deleteFlow(id: string) {
         try {
-            const response = await fetch(`http://localhost:8080/api/flows/${id}`, {
+            const response = await fetch(`api/flows/${id}`, {
                 method: "DELETE",
             });
             if (!response.ok) throw new Error(response.statusText);
