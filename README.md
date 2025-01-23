@@ -38,8 +38,11 @@ The app should now be available at `http://localhost:9090`.
 
 ### Tips
 #### Want to use `$` as the currency symbol?
->Change `currency: 'EUR'` to `currency: 'USD'` in [+page.svelte](ui/src/routes/+page.svelte) and start the app like mentioned above.
-
+>Change `currency: 'EUR'` to `currency: 'USD'` in [+page.svelte](ui/src/routes/+page.svelte), delete old docker stack, rebuild containers and start the app like mentioned above.
+#### How about other currencies?
+> The step above should apply for any other currency ISO-code in this list: [ISO 4217](https://de.wikipedia.org/wiki/ISO_4217)
+#### Where is the data stored?
+> The data is stored in a SQLite database in a docker volume. You can also use a custom path in the [docker-compose.yaml](docker-compose.yaml) to expose the database.
 
 ## Developing
 
