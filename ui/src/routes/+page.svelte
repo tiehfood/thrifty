@@ -1,14 +1,19 @@
 <script lang="ts">
     import type { Flow } from "$lib/types";
-    import { Card } from "flowbite-svelte";
+    import { Card, Indicator } from "flowbite-svelte";
     import NumberFlow, { continuous } from '@number-flow/svelte'
 
     import { onMount } from "svelte";
-    import { newFlowHandlerStore } from "$lib/stores.js";
+    import { newFlowHandlerStore, editFlowHandlerStore } from "$lib/stores.js";
     import { sharedState } from "./layout.svelte.js";
 
     let flows: Flow[] = $state([]);
     let total: number = $state(0);
+    let shouldDelete: boolean = $state(false);
+
+    let editFlowHandler: (flow: Flow) => void;
+    editFlowHandlerStore.subscribe((handler: (flow: Flow) => void) => editFlowHandler = handler);
+
 
     onMount(async () => {
         await getFlows();
@@ -16,7 +21,7 @@
 
     async function getFlows() {
         try {
-            let response = await fetch("api/flows")
+            let response = await fetch(`api/flows`)
             if (!response.ok) throw new Error(response.statusText);
             flows = await response.json();
             setTotal();
@@ -27,9 +32,24 @@
 
     async function uploadFlow(flow: Flow) {
         try {
-            console.log(JSON.stringify(flow));
-            const response = await fetch("api/flows", {
+            //console.log(JSON.stringify(flow));
+            const response = await fetch(`api/flows`, {
                 method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(flow),
+            });
+            if (!response.ok) throw new Error(response.statusText);
+        } catch (error) {
+            console.error("Error uploading flow:", error);
+        }
+    }
+
+    async function updateFlow(flow: Flow) {
+        try {
+            const response = await fetch(`api/flows/${flow.id}`, {
+                method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -53,7 +73,11 @@
     }
 
     async function newFlowHandler(flow: Flow) {
+        if (flow.id) {
+            await updateFlow(flow);
+        } else {
         await uploadFlow(flow);
+        }
         await getFlows();
     }
 
@@ -82,7 +106,7 @@
     newFlowHandlerStore.set(newFlowHandler);
 </script>
 
-{#snippet flowCard(flows)}
+{#snippet flowCard(flows: Flow[])}
     <div>
         {#each flows as flow}
             <div class="p-1">
@@ -102,8 +126,11 @@
                         </div>
                     </div>
                     {#if (sharedState.isEditMode)}
-                        <button type="button" onclick={() => deleteFlowHandler(flow.id)} class="absolute inset-0 flex items-center justify-center rounded-lg border flex -m-[1px] !border-gray-700 bg-red-800 bg-opacity-85 opacity-0 hover:opacity-100 cursor-pointer">
-                            <span class="text-lg font-bold text-gray-100 truncate">Delete</span>
+                        <button type="button" onclick={() => {if (!shouldDelete) editFlowHandler({ ...flow})}} class="absolute inset-0 flex items-center justify-center rounded-lg border -m-[1px] !border-gray-700 {shouldDelete ? 'bg-red-800' : 'bg-green-800'} bg-opacity-85 opacity-0 hover:opacity-100 cursor-pointer">
+                            <span class="text-lg font-bold text-gray-100 truncate">{shouldDelete ? 'Delete' : 'Edit'}</span>
+                            <Indicator class="bg-red-600 hover:bg-red-700" border onmouseenter={() => shouldDelete = true} onmouseleave={() => shouldDelete = false} onclick={() => deleteFlowHandler(flow.id as string)} size="xl" placement="top-right">
+                                <span class="text-white text-xs font-bold">—</span>
+                            </Indicator>
                         </button>
                     {/if}
                 </Card>

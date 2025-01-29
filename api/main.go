@@ -35,7 +35,7 @@ func main() {
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
-		AllowMethods: []string{"GET", "POST", "OPTIONS", "DELETE"},
+		AllowMethods: []string{"GET", "POST", "PATCH", "OPTIONS", "DELETE"},
 		AllowHeaders: []string{"Content-Type"},
 	}))
 
@@ -46,6 +46,7 @@ func main() {
 
 	router.GET("/api/flows", getFlows)
 	router.POST("/api/flows", addFlow)
+	router.PATCH("/api/flows/:id", updateFlow)
 	router.DELETE("/api/flows/:id", deleteFlow)
 
 	err = router.Run("0.0.0.0:8080")
@@ -259,6 +260,75 @@ func addFlow(c *gin.Context) {
 	execSql(dbCon, query, queryArgs...)
 
 	c.IndentedJSON(http.StatusCreated, newFlow)
+}
+
+func updateFlow(c *gin.Context) {
+	var newFlow Flow
+
+	if err := c.BindJSON(&newFlow); err != nil {
+		fmt.Println(errorPrefix, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Wrong data format"})
+		return
+	}
+
+	if isInvalidFlow(newFlow) {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Please provide name and amount"})
+		return
+	}
+
+	newFlow.ID = c.Param("id")
+
+	dbCon := getDbConnection(c)
+	if dbCon == nil {
+		return
+	}
+
+	query := "SELECT flows.id, iconId, hash FROM flows JOIN icons ON flows.iconId = icons.id WHERE flows.id = ?"
+	row, err := getSqlRow(dbCon, query, []interface{}{newFlow.ID}...)
+
+	if err != nil || row[0] == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Flow with given ID does not exist"})
+		return
+	}
+
+	iconId, ok := row[1].(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	hash, ok := row[2].(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	if iconId != defaultIconId && hash != getMD5(newFlow.Icon) {
+		query = "SELECT count(id) FROM flows WHERE iconId = ?"
+		row, err = getSqlRow(dbCon, query, []interface{}{iconId}...)
+		count, ok := row[0].(int64)
+
+		if err != nil || !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+			return
+		}
+
+		if count == 1 {
+			query = "DELETE FROM icons WHERE id = ?"
+			execSql(dbCon, query, []interface{}{iconId}...)
+		}
+	}
+
+	query = "UPDATE flows SET name = ?, description = ?, amount = ? WHERE id = ?"
+	queryArgs := []interface{}{newFlow.Name, newFlow.Description, newFlow.Amount, newFlow.ID}
+	if newFlow.Icon != "" {
+		iconId := insertIcon(dbCon, newFlow, nil)
+		query = "UPDATE flows SET name = ?, description = ?, amount = ?, iconId = ? WHERE id = ?"
+		queryArgs = []interface{}{newFlow.Name, newFlow.Description, newFlow.Amount, iconId, newFlow.ID}
+	}
+
+	execSql(dbCon, query, queryArgs...)
+	c.JSON(http.StatusOK, gin.H{"ok": "Flow updated"})
 }
 
 func deleteFlow(c *gin.Context) {
