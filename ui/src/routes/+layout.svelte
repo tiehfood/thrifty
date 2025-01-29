@@ -2,7 +2,7 @@
     import "../app.css";
     import debounce from 'debounce';
     import type { Flow, PageButton } from '$lib/types';
-    import { newFlowHandlerStore } from "$lib/stores";
+    import { newFlowHandlerStore, editFlowHandlerStore } from "$lib/stores";
     import { sharedState } from './layout.svelte.js';
     import Fox from '../icons/fox.svg?component';
     import {
@@ -10,6 +10,7 @@
         Footer,
         FooterCopyright,
         Input,
+        Img,
         Label,
         Modal,
         Navbar,
@@ -23,6 +24,7 @@
     const closeButton: PageButton       = { name: "Close", clickHandle: clickClose, color: "alternative" }
     const modalCloseButton: PageButton  = { name: "Close", clickHandle: clickModalClose, color: "alternative" }
     const modalAddButton: PageButton    = { name: "Add" }
+    const modalEditButton: PageButton    = { name: "Edit" }
 
     let { children } = $props();
 
@@ -30,9 +32,8 @@
     let clickOutsideModal = $state(false);
     let hiddenFileInputRef: HTMLInputElement;
 
-    let newFlow: Flow = $state(getEmptyFlow());
+    let currentFlow: Flow = $state(getEmptyFlow());    
     let newFlowHandler: (flow: Flow) => void;
-
     newFlowHandlerStore.subscribe((handler: (flow: Flow) => void) => newFlowHandler = handler);
 
     function getEmptyFlow(): Flow {
@@ -51,17 +52,17 @@
     }
 
     function clickNew() {
+        currentFlow = getEmptyFlow();
         clickOutsideModal = true;
     }
 
     function clickClose() {
-        buttons = [editButton]
+        buttons = [editButton];
         sharedState.isEditMode = false;
     }
 
     function clickModalClose() {
-        clickOutsideModal = false
-        newFlow = getEmptyFlow()
+        clickOutsideModal = false;
     }
 
     function validateForm(flow: Flow): string[] {
@@ -77,23 +78,23 @@
 
     function handleFocus() {
         let inputRef = document.getElementById("numberInput") as HTMLInputElement;
-        if (newFlow.amount === 0) {
+        if (currentFlow.amount === 0) {
             inputRef.value = "";
         }
     }
 
     async function handleSubmit(event: Event): Promise<void> {
         event.preventDefault();
-        const errors = validateForm(newFlow);
+        const errors = validateForm(currentFlow);
         if (errors.length > 0) {
             alert(errors.join("\n"));
             return;
         }
         if (newFlowHandler) {
-            await newFlowHandler(newFlow);
+            await newFlowHandler(currentFlow);
         }
         clickOutsideModal = false;
-        newFlow = getEmptyFlow();
+        currentFlow = getEmptyFlow();
     }
 
     function openFileDialog() {
@@ -106,11 +107,18 @@
             const reader = new FileReader();
             reader.onload = debounce((e) => {
                 const svgContent = e.target.result;
-                newFlow.icon = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent.toString())}`;
+                currentFlow.icon = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent.toString())}`;
             }, 500);
             reader.readAsText(uploadedFile);
         }
     }
+
+    async function editFlowHandler(flow: Flow) {
+        currentFlow = flow;
+        clickOutsideModal = true;
+    }
+
+    editFlowHandlerStore.set(editFlowHandler);
 </script>
 
 <style>
@@ -125,6 +133,13 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 </svelte:head>
+
+{#snippet addButton(button: PageButton, type?: "submit" | "reset" | "button" | null | undefined)}
+    <Button onclick={button.clickHandle}
+            color={button.color}
+            {type}>{button.name}
+    </Button>
+{/snippet}
 
 <Navbar class="bg-gray-700 text-gray-200">
     <NavBrand href="/">
@@ -143,42 +158,40 @@
 </Navbar>
 
 {@render children()}
-<Modal title="Add a new entry" bind:open={clickOutsideModal} outsideclose>
+<Modal title={currentFlow.id ? "Edit entry" : "Add new entry"} bind:open={clickOutsideModal} outsideclose>
     <form onsubmit={handleSubmit}>
         <Label class="space-y-2 mb-6">
             <span>Name</span>
-            <Input type="text" placeholder="Enter name" bind:value={newFlow.name}/>
+            <Input type="text" placeholder="Enter name" bind:value={currentFlow.name}/>
         </Label>
         <Label class="space-y-2 mb-6">
             <span>Description</span>
-            <Input type="text" placeholder="Enter description (optional)" bind:value={newFlow.description}/>
+            <Input type="text" placeholder="Enter description (optional)" bind:value={currentFlow.description}/>
         </Label>
         <div class="grid grid-cols-2 gap-8">
             <Label class="space-y-2 mb-6">
                 <span>Amount</span>
-                <NumberInput on:focus={handleFocus} id="numberInput" step="0.01" bind:value={newFlow.amount}/>
+                <NumberInput onfocus={handleFocus} id="numberInput" step="0.01" bind:value={currentFlow.amount}/>
             </Label>
             <div class="flex justify-center">
                 <input type="file" accept=".svg" onchange={handleFileUpload} class="hidden" bind:this={hiddenFileInputRef} />
-                <button type="button" onclick={openFileDialog} class="relative flex {newFlow.icon === undefined ? 'items-center' : ''} justify-center rounded p-1 ring-2 ring-gray-300 {newFlow.icon === undefined ? 'bg-gray-100' : 'bg-white'} text-gray-600 aspect-square h-24 w-24 text-center m-1 flex flex-shrink-0">
-                    {#if (newFlow.icon === undefined)}
-                        <span>Icon (optional)</span>
+                <button type="button" onclick={openFileDialog} class="relative flex {currentFlow.icon === undefined ? 'items-center' : ''} justify-center rounded p-1 ring-2 ring-gray-300 {currentFlow.icon === undefined ? 'bg-gray-100' : 'bg-white'} aspect-square h-24 w-24 m-1 flex-shrink-0">
+                    {#if (currentFlow.icon === undefined)}
+                        <span class="text-center text-gray-600">Icon (optional)</span>
                     {:else }
-                        <img class="aspect-square h-22 w-22" src={newFlow.icon} alt="Icon" />
+                        <Img size="w-full h-full" class="object-contain" src={currentFlow.icon} alt="Icon" />
                     {/if}
                 </button>
             </div>
 
         </div>
         <div class="flex p-0 pt-4 space-x-3">
-            <Button onclick={modalAddButton.clickHandle}
-                    color={modalAddButton.color}
-                    type="submit">{modalAddButton.name}
-            </Button>
-            <Button onclick={modalCloseButton.clickHandle}
-                    color={modalCloseButton.color}>
-                {modalCloseButton.name}
-            </Button>
+            {#if currentFlow.id}
+                {@render addButton(modalEditButton, "submit")}
+            {:else}
+                {@render addButton(modalAddButton, "submit")}
+            {/if}
+            {@render addButton(modalCloseButton)}
         </div>
     </form>
 </Modal>

@@ -1,3 +1,5 @@
+import type { MouseEventHandler } from "svelte/elements";
+
 export interface Flow {
     id:          string | undefined;
     name:        string;
@@ -8,7 +10,7 @@ export interface Flow {
 
 export interface PageButton {
     name:         string;
-    clickHandle?: Function;
-    color?:       string;
+    clickHandle?: MouseEventHandler<HTMLButtonElement>;
+    color?:       "alternative" | "none" | "red" | "yellow" | "green" | "purple" | "blue" | "light" | "dark" | "primary";
     hidden?:      boolean;
 }
