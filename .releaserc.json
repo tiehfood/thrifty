@@ -1,0 +1,88 @@
+{
+  "branches": [
+    "main",
+    "next",
+    "add-workflow"
+  ],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits"
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "types": [
+            {
+              "type": "feat",
+              "section": "✨ Features ✨",
+              "hidden": false
+            },
+            {
+              "type": "fix",
+              "section": "🐞 Bug fixes 🐞",
+              "hidden": false
+            },
+            {
+              "type": "perf",
+              "section": "\uD83D\uDE80 Performance improvements \uD83D\uDE80",
+              "hidden": false
+            },
+            {
+              "type": "ci",
+              "section": "\uD83D\uDEA7 CI changes \uD83D\uDEA7",
+              "hidden": false
+            },
+            {
+              "type": "build",
+              "section": "\uD83C\uDFD7️ Build tool changes \uD83C\uDFD7️",
+              "hidden": false
+            },
+            {
+              "type": "docs",
+              "section": "\uD83D\uDDCE Documentation \uD83D\uDDCE",
+              "hidden": false
+            },
+            {
+              "type": "refactor",
+              "section": "\uD83D\uDD27 Refactoring \uD83D\uDD27",
+              "hidden": false
+            },
+            {
+              "type": "test",
+              "section": "\uD83D\uDC4C Test cases \uD83D\uDC4C",
+              "hidden": false
+            },
+            {
+              "type": "chore",
+              "section": "ℹ\uFE0F Uncategorized changes ℹ\uFE0F",
+              "hidden": false
+            },
+            {
+              "type": "revert",
+              "section": "\uD83D\uDCA3 Reverts \uD83D\uDCA3",
+              "hidden": false
+            }
+          ]
+        }
+      }
+    ],
+    "@semantic-release/changelog",
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "CHANGELOG.md",
+            "label": "Changes"
+          }
+        ]
+      }
+    ]
+  ]
+}
+
