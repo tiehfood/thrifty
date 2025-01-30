@@ -2,7 +2,7 @@
   "branches": [
     "main",
     "next",
-    "add-workflow"
+    "test"
   ],
   "plugins": [
     [
@@ -82,7 +82,15 @@
           }
         ]
       }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "analyzeCommitsCmd": "echo \"VERSION_NUMBER=${lastRelease.version}\" > release.env",
+        "generateNotesCmd": "echo \"VERSION_NUMBER=${nextRelease.version}\" > release.env; echo \"CI_CREATE_IMAGE=true\" >> release.env"
+      }
     ]
+
   ]
 }
 
