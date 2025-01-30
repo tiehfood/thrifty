@@ -1,0 +1,121 @@
+definitions:
+  main.Flow:
+    properties:
+      amount:
+        type: number
+      description:
+        type: string
+      icon:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  main.HTTPError:
+    properties:
+      error:
+        type: string
+    type: object
+  main.HTTPResponse:
+    properties:
+      ok:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /flows:
+    get:
+      description: Get all flows in a JSON object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Flow'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.HTTPError'
+      summary: Get all flows
+      tags:
+      - Flows
+    post:
+      description: Get all flows in a JSON object
+      parameters:
+      - description: Flow object, id is set by the server and could be omitted
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.Flow'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Flow'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.HTTPError'
+      summary: Add new flow
+      tags:
+      - Flows
+  /flows/{id}:
+    delete:
+      description: Delete an existing flow
+      parameters:
+      - description: Flow id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.HTTPResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.HTTPError'
+      summary: Delete a flow
+      tags:
+      - Flows
+    patch:
+      description: Update an existing flow with new data
+      parameters:
+      - description: Flow id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Flow object, id is ignored and could be omitted
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.Flow'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Flow'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.HTTPError'
+      summary: Update existing flow
+      tags:
+      - Flows
+swagger: "2.0"
