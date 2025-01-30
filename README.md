@@ -14,6 +14,7 @@ Features:
 - Delete entries
 - Support for SVG icons (default: <img width=19 align=center alt="dollar" src="doc/default-icon.svg"/>)
 - Two rows for income and expenses (collapse into single one on smaller devices)
+- API documentation at `/swagger/index.html`
 
 Frameworks used:
 
