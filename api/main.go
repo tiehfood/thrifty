@@ -8,9 +8,12 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	_ "modernc.org/sqlite"
 	"net/http"
 	"os"
+	"tiehfood/thrifty/docs"
 )
 
 type Flow struct {
@@ -21,6 +24,14 @@ type Flow struct {
 	Icon        string  `json:"icon"`
 }
 
+type HTTPResponse struct {
+	Ok string `json:"ok"`
+}
+
+type HTTPError struct {
+	Error string `json:"error"`
+}
+
 var defaultIconId = "00000000-0000-0000-0000-000000000000"
 var errorPrefix = "Error: "
 
@@ -29,6 +40,11 @@ func main() {
 	if err != nil {
 		fmt.Println(errorPrefix, err)
 	}
+
+	docs.SwaggerInfo.Title = "Thrifty API"
+	docs.SwaggerInfo.Description = "This is the documentation for the Thrifty API"
+	docs.SwaggerInfo.BasePath = "/api"
+	docs.SwaggerInfo.Version = "1.0"
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
@@ -44,12 +60,19 @@ func main() {
 		context.Next()
 	})
 
-	router.GET("/api/flows", getFlows)
-	router.POST("/api/flows", addFlow)
-	router.PATCH("/api/flows/:id", updateFlow)
-	router.DELETE("/api/flows/:id", deleteFlow)
+	v1 := router.Group("/api")
+	{
+		flows := v1.Group("/flows")
+		{
+			flows.GET("", getFlows)
+			flows.POST("", addFlow)
+			flows.PATCH(":id", updateFlow)
+			flows.DELETE(":id", deleteFlow)
+		}
+	}
 
-	err = router.Run("0.0.0.0:8080")
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	err = router.Run(":8080")
 	if err != nil {
 		fmt.Println(errorPrefix, err)
 	}
@@ -157,12 +180,12 @@ func getMD5(input string) string {
 func getDbConnection(c *gin.Context) *sql.DB {
 	dbConVar, exists := c.Get("dbCon")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection not found"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Database connection not found"})
 		return nil
 	}
 	dbCon, ok := dbConVar.(*sql.DB)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid database connection"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Invalid database connection"})
 		return nil
 	}
 	return dbCon
@@ -194,6 +217,14 @@ func insertIcon(dbCon *sql.DB, flow Flow, iconId *string) string {
 	return *iconId
 }
 
+// getFlows godoc
+// @Summary      Get all flows
+// @Description  Get all flows in a JSON object
+// @Tags         Flows
+// @Produce      json
+// @Success      200  	{array}  main.Flow
+// @Failure      500  	{object} main.HTTPError
+// @Router       /flows [get]
 func getFlows(c *gin.Context) {
 	query := `
 SELECT
@@ -217,28 +248,37 @@ FROM
 	var jsonResult []byte
 	err := dbCon.QueryRow(query).Scan(&jsonResult)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query database"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Failed to query database"})
 		return
 	}
 
 	if !json.Valid(jsonResult) {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid data returned from database"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Invalid data returned from database"})
 	}
 	c.Header("Content-Type", "application/json")
 	c.Data(http.StatusOK, "application/json", jsonResult)
 }
 
+// addFlow godoc
+// @Summary      	Add new flow
+// @Description  	Get all flows in a JSON object
+// @Tags         	Flows
+// @Param request 	body 	main.Flow true "Flow object, id is set by the server and could be omitted"
+// @Produce      	json
+// @Success      	200  	{object}  main.Flow
+// @Failure      	500  	{object}  main.HTTPError
+// @Router       	/flows 	[post]
 func addFlow(c *gin.Context) {
 	var newFlow Flow
 
 	if err := c.BindJSON(&newFlow); err != nil {
 		fmt.Println(errorPrefix, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Wrong data format"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Wrong data format"})
 		return
 	}
 
 	if isInvalidFlow(newFlow) {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Please provide name and amount"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Please provide name and amount"})
 		return
 	}
 
@@ -262,17 +302,27 @@ func addFlow(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newFlow)
 }
 
+// updateFlow godoc
+// @Summary      	Update existing flow
+// @Description  	Update an existing flow with new data
+// @Tags         	Flows
+// @Param id path 	int 		true 		"Flow id"
+// @Param request 	body 		main.Flow 	true "Flow object, id is ignored and could be omitted"
+// @Produce      	json
+// @Success      	200  		{object}  	main.Flow
+// @Failure      	500  		{object}  	main.HTTPError
+// @Router       	/flows/{id} [patch]
 func updateFlow(c *gin.Context) {
 	var newFlow Flow
 
 	if err := c.BindJSON(&newFlow); err != nil {
 		fmt.Println(errorPrefix, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Wrong data format"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Wrong data format"})
 		return
 	}
 
 	if isInvalidFlow(newFlow) {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Please provide name and amount"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Please provide name and amount"})
 		return
 	}
 
@@ -287,19 +337,19 @@ func updateFlow(c *gin.Context) {
 	row, err := getSqlRow(dbCon, query, []interface{}{newFlow.ID}...)
 
 	if err != nil || row[0] == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Flow with given ID does not exist"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Flow with given ID does not exist"})
 		return
 	}
 
 	iconId, ok := row[1].(string)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Database error"})
 		return
 	}
 
 	hash, ok := row[2].(string)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Database error"})
 		return
 	}
 
@@ -309,7 +359,7 @@ func updateFlow(c *gin.Context) {
 		count, ok := row[0].(int64)
 
 		if err != nil || !ok {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+			c.JSON(http.StatusInternalServerError, HTTPError{Error: "Database error"})
 			return
 		}
 
@@ -328,9 +378,18 @@ func updateFlow(c *gin.Context) {
 	}
 
 	execSql(dbCon, query, queryArgs...)
-	c.JSON(http.StatusOK, gin.H{"ok": "Flow updated"})
+	c.JSON(http.StatusOK, newFlow)
 }
 
+// deleteFlow godoc
+// @Summary      	Delete a flow
+// @Description  	Delete an existing flow
+// @Tags         	Flows
+// @Param id path 	int 		true 		"Flow id"
+// @Produce      	json
+// @Success      	200  		{object}	main.HTTPResponse
+// @Failure      	500  		{object}  	main.HTTPError
+// @Router       	/flows/{id} [delete]
 func deleteFlow(c *gin.Context) {
 	flowId := c.Param("id")
 	dbCon := getDbConnection(c)
@@ -342,13 +401,13 @@ func deleteFlow(c *gin.Context) {
 	row, err := getSqlRow(dbCon, query, []interface{}{flowId}...)
 
 	if err != nil || row[0] == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Flow with given ID does not exist"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Flow with given ID does not exist"})
 		return
 	}
 
 	iconId, ok := row[1].(string)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Database error"})
 		return
 	}
 
@@ -358,7 +417,7 @@ func deleteFlow(c *gin.Context) {
 		count, ok := row[0].(int64)
 
 		if err != nil || !ok {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+			c.JSON(http.StatusInternalServerError, HTTPError{Error: "Database error"})
 			return
 		}
 
@@ -369,5 +428,5 @@ func deleteFlow(c *gin.Context) {
 	}
 	query = "DELETE FROM flows WHERE id = ?"
 	execSql(dbCon, query, []interface{}{flowId}...)
-	c.JSON(http.StatusOK, gin.H{"ok": "Flow deleted"})
+	c.JSON(http.StatusOK, HTTPResponse{Ok: "Flow deleted"})
 }

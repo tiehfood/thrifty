@@ -39,7 +39,7 @@ services:
       - database:/data
     labels:
       - "traefik.http.routers.api.entrypoints=main"
-      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api.rule=PathRegexp(`^/(api|swagger)/`)"
       - "traefik.http.routers.api.service=api"
       - "traefik.http.services.api.loadbalancer.server.port=8080"
 
