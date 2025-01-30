@@ -28,7 +28,7 @@ jobs:
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm --package semantic-release@23 --package @semantic-release/exec --package @semantic-release/changelog --package conventional-changelog-conventionalcommits@7.0.2 dlx semantic-release -d --no-ci
+        run: pnpm --package semantic-release@23 --package @semantic-release/exec --package @semantic-release/changelog --package conventional-changelog-conventionalcommits@7.0.2 dlx semantic-release
       - name: Generate output
         id: output
         run: test -f "release.env" && cat release.env >> "$GITHUB_OUTPUT" || exit 0
