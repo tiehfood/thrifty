@@ -22,6 +22,8 @@ services:
     build:
       context: ui
       dockerfile: Dockerfile
+    environment:
+      - CURRENCY_ISO=EUR
     labels:
       - "traefik.http.routers.ui.entrypoints=main"
       - "traefik.http.routers.ui.rule=PathPrefix(`/`)"

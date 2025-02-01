@@ -29,6 +29,7 @@ Features:
 - Support for SVG icons (default: <img width=19 align=center alt="dollar" src="doc/default-icon.svg"/>)
 - Two rows for income and expenses (collapse into single one on smaller devices)
 - API documentation at `/swagger/index.html`
+- Currency configurable via environment variable
 
 Frameworks used:
 
@@ -61,13 +62,13 @@ docker compose -f docker-compose-build.yaml up -d
 
 ### Tips
 #### Want to use `$` as the currency symbol?
->Change `currency: 'EUR'` to `currency: 'USD'` in [+page.svelte](ui/src/routes/+page.svelte), delete old docker stack, build containers (docker-compose-build.yaml) and start the app like mentioned above.
+>Set `CURRENCY_ISO=USD` for the UI in the docker compose file and restart the UI container.
 #### How about other currencies?
 > The step above should apply for any other currency ISO-code in this list: [ISO 4217](https://de.wikipedia.org/wiki/ISO_4217)
 #### Where is the data stored?
 > The data is stored in a SQLite database in a docker volume. You can also use a custom path in the [docker-compose.yaml](docker-compose.yaml) to expose the database.
 #### I need a docker image for a different architecture.
-> You can build the image yourself like described above.
+> Currently amd64 and arm64 builds are created. For other architectures you can build the image yourself like described above.
 
 ## Developing
 

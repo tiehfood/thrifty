@@ -11,4 +11,5 @@ RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.shrc" SHELL="$(which 
 FROM nginxinc/nginx-unprivileged:alpine3.20
 
 COPY --from=builder /app/build /usr/share/nginx/html
+COPY 01-sub.sh /docker-entrypoint.d/
 USER nginx
