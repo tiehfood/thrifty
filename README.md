@@ -69,6 +69,12 @@ docker compose -f docker-compose-build.yaml up -d
 > The data is stored in a SQLite database in a docker volume. You can also use a custom path in the [docker-compose.yaml](docker-compose.yaml) to expose the database.
 #### I need a docker image for a different architecture.
 > Currently amd64 and arm64 builds are created. For other architectures you can build the image yourself like described above.
+#### Want to use the app without a reverse proxy?
+> You could add the environment variable `LOCAL_API_PORT=8080` to the UI container in the docker compose file.
+> Use the port you are exposing the API container on.
+> You need to add the corresponding port configuration to the API container.
+> Internal port needs to be 8080, external port can be any port you want to expose the API on.
+
 
 ## Developing
 
