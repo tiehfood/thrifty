@@ -33,8 +33,8 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       flowbite:
-        specifier: ^2.5.2
-        version: 2.5.2(rollup@4.31.0)
+        specifier: ^3.1.1
+        version: 3.1.1(rollup@4.31.0)
       flowbite-svelte:
         specifier: ^0.47.4
         version: 0.47.4(rollup@4.31.0)(svelte@5.19.6)
@@ -686,6 +686,9 @@ packages:
 
   flowbite@2.5.2:
     resolution: {integrity: sha512-kwFD3n8/YW4EG8GlY3Od9IoKND97kitO+/ejISHSqpn3vw2i5K/+ZI8Jm2V+KC4fGdnfi0XZ+TzYqQb4Q1LshA==}
+
+  flowbite@3.1.1:
+    resolution: {integrity: sha512-ZYj519lS7Ls+ek6jOi12JRJytDtwekJdnwSjDXhiS8G+k2j3X8HfFOGtbdrYey6h2+z/seEDSqsSjDca/wClxw==}
 
   foreground-child@3.3.0:
     resolution: {integrity: sha512-Ld2g8rrAyMYFXBhEqMz8ZAHBi4J4uS1i/CxGMDnjyFWddMXLVcDp051DZfu+t7+ab7Wv6SMqpWmyFIj5UbfFvg==}
@@ -1711,6 +1714,15 @@ snapshots:
       '@popperjs/core': 2.11.8
       flowbite-datepicker: 1.3.2(rollup@4.31.0)
       mini-svg-data-uri: 1.4.4
+    transitivePeerDependencies:
+      - rollup
+
+  flowbite@3.1.1(rollup@4.31.0):
+    dependencies:
+      '@popperjs/core': 2.11.8
+      flowbite-datepicker: 1.3.2(rollup@4.31.0)
+      mini-svg-data-uri: 1.4.4
+      postcss: 8.5.1
     transitivePeerDependencies:
       - rollup
 
