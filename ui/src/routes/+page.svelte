@@ -126,7 +126,7 @@
                         </div>
                     </div>
                     {#if (sharedState.isEditMode)}
-                        <button type="button" onclick={() => {if (!shouldDelete) editFlowHandler({ ...flow})}} class="absolute inset-0 flex items-center justify-center rounded-lg border -m-[1px] !border-gray-700 {shouldDelete ? 'bg-red-800' : 'bg-green-800'} bg-opacity-85 opacity-0 hover:opacity-100 cursor-pointer">
+                        <button type="button" onclick={() => {if (!shouldDelete) editFlowHandler({ ...flow})}} class="absolute inset-0 flex items-center justify-center rounded-lg border -m-[1px] !border-gray-700 {shouldDelete ? 'bg-red-800/85' : 'bg-green-800/85'} opacity-0 hover:opacity-100 cursor-pointer">
                             <span class="text-lg font-bold text-gray-100 truncate">{shouldDelete ? 'Delete' : 'Edit'}</span>
                             <Indicator class="bg-red-600 hover:bg-red-700" border onmouseenter={() => shouldDelete = true} onmouseleave={() => shouldDelete = false} onclick={() => deleteFlowHandler(flow.id as string)} size="xl" placement="top-right">
                                 <span class="text-white text-xs font-bold">—</span>
