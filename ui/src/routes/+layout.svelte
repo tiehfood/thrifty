@@ -158,7 +158,7 @@
 </Navbar>
 
 {@render children()}
-<Modal title={currentFlow.id ? "Edit entry" : "Add new entry"} bind:open={clickOutsideModal} outsideclose>
+<Modal title={currentFlow.id ? "Edit entry" : "Add new entry"} bind:open={clickOutsideModal} outsideclose backdropClass="fixed inset-0 z-40 bg-gray-900/50">
     <form onsubmit={handleSubmit}>
         <Label class="space-y-2 mb-6">
             <span>Name</span>
@@ -175,7 +175,7 @@
             </Label>
             <div class="flex justify-center">
                 <input type="file" accept=".svg" onchange={handleFileUpload} class="hidden" bind:this={hiddenFileInputRef} />
-                <button type="button" onclick={openFileDialog} class="relative flex {currentFlow.icon === undefined ? 'items-center' : ''} justify-center rounded p-1 ring-2 ring-gray-300 {currentFlow.icon === undefined ? 'bg-gray-100' : 'bg-white'} aspect-square h-24 w-24 m-1 flex-shrink-0">
+                <button type="button" onclick={openFileDialog} class="relative flex {currentFlow.icon === undefined ? 'items-center' : ''} justify-center rounded p-1 ring-2 ring-gray-300 {currentFlow.icon === undefined ? 'bg-gray-100' : 'bg-white'} aspect-square h-24 w-24 m-1 flex-shrink-0 cursor-pointer">
                     {#if (currentFlow.icon === undefined)}
                         <span class="text-center text-gray-600">Icon (optional)</span>
                     {:else }
