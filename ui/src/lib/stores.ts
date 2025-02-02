@@ -1,3 +1,6 @@
 import { writable } from "svelte/store";
-export const newFlowHandlerStore = writable();
-export const editFlowHandlerStore = writable();
+import type { Writable } from "svelte/store";
+import type { Flow } from "$lib/types";
+
+export const newFlowHandlerStore: Writable<(flow: Flow) => void> = writable();
+export const editFlowHandlerStore: Writable<(flow: Flow) => void> = writable();
