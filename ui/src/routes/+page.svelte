@@ -14,7 +14,6 @@
     let editFlowHandler: (flow: Flow) => void;
     editFlowHandlerStore.subscribe((handler: (flow: Flow) => void) => editFlowHandler = handler);
 
-
     onMount(async () => {
         await getFlows();
     })
