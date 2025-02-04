@@ -70,10 +70,13 @@ docker compose -f docker-compose-build.yaml up -d
 #### I need a docker image for a different architecture.
 > Currently amd64 and arm64 builds are created. For other architectures you can build the image yourself like described above.
 #### Want to use the app without a reverse proxy?
-> You could add the environment variable `LOCAL_API_PORT=8080` to the UI container in the docker compose file.
-> Use the port you are exposing the API container on.
-> You need to add the corresponding port configuration to the API container.
-> Internal port needs to be 8080, external port can be any port you want to expose the API on.
+> The default internal port for both containers is port 8080.
+> If you want to use docker compose and just want to change the external port of the API container, you could add the environment variable `LOCAL_API_PORT=8080` to the UI container.
+> Change it to the desired external port of your docker compose file.
+
+> If you want to use the containers for example in host network mode, you could also change the port the API is listening on.
+> Set the variable `PORT=8081` on the API container to change the internal port to 8081.
+> Depending on your setup you might need to set `LOCAL_API_PORT` to the same value.
 
 
 ## Developing

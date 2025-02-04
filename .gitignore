@@ -3,5 +3,6 @@
 .scannerwork
 sonar-project.properties
 data
+**/.dockerignore
 **.sqlite
 **/.DS_Store

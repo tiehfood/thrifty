@@ -13,6 +13,7 @@ import (
 	_ "modernc.org/sqlite"
 	"net/http"
 	"os"
+	"strconv"
 	"tiehfood/thrifty/docs"
 )
 
@@ -72,10 +73,33 @@ func main() {
 	}
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	err = router.Run(":8080")
+	port, err := getAndValidatePort()
 	if err != nil {
 		fmt.Println(errorPrefix, err)
 	}
+	fmt.Printf("Running on port: %d\n", port)
+	err = router.Run(fmt.Sprintf(":%d", port))
+	if err != nil {
+		fmt.Println(errorPrefix, err)
+	}
+}
+
+func getAndValidatePort() (int, error) {
+	portStr := os.Getenv("PORT")
+	if portStr == "" {
+		return 8080, nil
+	}
+
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return 8080, fmt.Errorf("invalid PORT value: %v", err)
+	}
+
+	if port < 1 || port > 65535 {
+		return 0, fmt.Errorf("PORT value out of range (1-65535)")
+	}
+
+	return port, nil
 }
 
 func isInvalidFlow(flow Flow) bool {
