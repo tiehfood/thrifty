@@ -78,7 +78,8 @@ docker compose -f docker-compose-build.yaml up -d
 > If you want to use the containers for example in host network mode, you could also change the port the API is listening on.
 > Set the variable `PORT=8081` on the API container to change the internal port to 8081.
 > Depending on your setup you might need to set `LOCAL_API_PORT` to the same value.
-
+#### Want to have a single column all the time?
+> Set the variable `USE_SINGLE_COLUMN=true` in the UI container to always use a single column layout.
 
 ## Developing
 
