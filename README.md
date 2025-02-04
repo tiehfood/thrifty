@@ -1,18 +1,18 @@
 <p align="center">
-    <img src="ui/src/icons/fox.svg" width="25%">
+    <img alt="Icon" src="ui/src/icons/fox.svg" width="25%">
 </p>
 <p align="center">
   <a href="https://github.com/tiehfood/thrifty/releases/latest">
-    <img src="https://img.shields.io/github/release/tiehfood/thrifty.svg" alt="Release Version"/>
+    <img alt="Release Version" src="https://img.shields.io/github/release/tiehfood/thrifty.svg"/>
   </a>
   <a href="https://hub.docker.com/r/tiehfood/thrifty-ui">
     <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/tiehfood/thrifty-ui"/>
   </a>
   <a href="LICENSE">
-    <img src="https://img.shields.io/github/license/tiehfood/thrifty.svg" alt="License"/>
+    <img alt="License" src="https://img.shields.io/github/license/tiehfood/thrifty.svg"/>
   </a>
   <a href="https://github.com/tiehfood/thrifty">
-    <img src="https://img.shields.io/github/stars/tiehfood/thrifty?style=flat&label=github+stars"/>
+    <img alt="Stars" src="https://img.shields.io/github/stars/tiehfood/thrifty?style=flat&label=github+stars"/>
   </a>
 </p>
 
@@ -37,8 +37,9 @@ Frameworks used:
 - __API__: golang
 
 ## Screenshots
-![Screenshot1](doc/screenshot_1.png)
-![Screenshot2](doc/screenshot_2.png)
+| ![Screenshot1](doc/screenshot_1.png) | ![Screenshot2](doc/screenshot_2.png) |
+|:------------------------------------:|:------------------------------------:|
+| ![Screenshot3](doc/screenshot_3.png) | ![Screenshot4](doc/screenshot_4.png) |
 
 ## Running the app
 
