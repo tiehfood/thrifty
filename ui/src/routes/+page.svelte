@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { Flow } from "$lib/types";
     import { Card, Indicator } from "flowbite-svelte";
-    import NumberFlow, { continuous } from '@number-flow/svelte'
+    import NumberFlow, { continuous } from '@number-flow/svelte';
 
     import { onMount } from "svelte";
     import { newFlowHandlerStore, editFlowHandlerStore } from "$lib/stores.js";
@@ -14,13 +14,20 @@
     let editFlowHandler: (flow: Flow) => void;
     editFlowHandlerStore.subscribe((handler: (flow: Flow) => void) => editFlowHandler = handler);
 
+    let currentProtocol: string;
+    let currentHostname: string;
+    let currentPort: string;
+
     onMount(async () => {
+        currentProtocol = window.location.protocol.replace(":","");
+        currentHostname = window.location.hostname.toLowerCase();
+        currentPort = window.location.port.trim();
         await getFlows();
     })
 
     async function getFlows() {
         try {
-            let response = await fetch(`api/flows`)
+            let response = await fetch(`${currentProtocol}://${currentHostname}${!!currentPort ? ":" : ""}${currentPort}/api/flows`);
             if (!response.ok) throw new Error(response.statusText);
             flows = await response.json();
             setTotal();
@@ -32,7 +39,7 @@
     async function uploadFlow(flow: Flow) {
         try {
             //console.log(JSON.stringify(flow));
-            const response = await fetch(`api/flows`, {
+            const response = await fetch(`${currentProtocol}://${currentHostname}${!!currentPort ? ":" : ""}${currentPort}/api/flows`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -47,7 +54,7 @@
 
     async function updateFlow(flow: Flow) {
         try {
-            const response = await fetch(`api/flows/${flow.id}`, {
+            const response = await fetch(`${currentProtocol}://${currentHostname}${!!currentPort ? ":" : ""}${currentPort}/api/flows/${flow.id}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
@@ -58,11 +65,11 @@
         } catch (error) {
             console.error("Error uploading flow:", error);
         }
-    }
+    }    
 
     async function deleteFlow(id: string) {
         try {
-            const response = await fetch(`api/flows/${id}`, {
+            const response = await fetch(`${currentProtocol}://${currentHostname}${!!currentPort ? ":" : ""}${currentPort}/api/flows/${id}`, {
                 method: "DELETE",
             });
             if (!response.ok) throw new Error(response.statusText);
@@ -75,7 +82,7 @@
         if (flow.id) {
             await updateFlow(flow);
         } else {
-        await uploadFlow(flow);
+            await uploadFlow(flow);
         }
         await getFlows();
     }
@@ -87,7 +94,7 @@
 
     function setTotal() {
         let sum = flows.reduce((accumulator, currentFlow) => accumulator + currentFlow.amount, 0);
-        total = Math.round((sum + Number.EPSILON) * 100) / 100
+        total = Math.round((sum + Number.EPSILON) * 100) / 100;
     }
 
     function getExpenses(flows: Flow[]): Flow[] {

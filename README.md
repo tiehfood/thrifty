@@ -78,6 +78,8 @@ docker compose -f docker-compose-build.yaml up -d
 > If you want to use the containers for example in host network mode, you could also change the port the API is listening on.
 > Set the variable `PORT=8081` on the API container to change the internal port to 8081.
 > Depending on your setup you might need to set `LOCAL_API_PORT` to the same value.
+
+> You can also set `LOACL_API_HOSTNAME` and `LOCAL_API_PROTOCOL` if needed.
 #### Want to have a single column all the time?
 > Set the variable `USE_SINGLE_COLUMN=true` in the UI container to always use a single column layout.
 
@@ -86,7 +88,7 @@ docker compose -f docker-compose-build.yaml up -d
 ### Frontend
 Install node and node modules.
 Running locally requires you to change the API URL in [+page.svelte](ui/src/routes/+page.svelte).
-Prepend the URL paths in the fetch calls with `http://localhost:8080/`.
+Change `currentProtocol`, `currentHostname` and `currentPort` in the _onMount_ method to where your API development is running on.
 ```bash
 cd ui
 
