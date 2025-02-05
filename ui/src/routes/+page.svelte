@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { Flow } from "$lib/types";
     import { Card, Indicator } from "flowbite-svelte";
-    import NumberFlow, { continuous } from '@number-flow/svelte'
+    import NumberFlow, { continuous } from '@number-flow/svelte';
 
     import { onMount } from "svelte";
     import { newFlowHandlerStore, editFlowHandlerStore } from "$lib/stores.js";
@@ -87,7 +87,7 @@
 
     function setTotal() {
         let sum = flows.reduce((accumulator, currentFlow) => accumulator + currentFlow.amount, 0);
-        total = Math.round((sum + Number.EPSILON) * 100) / 100
+        total = Math.round((sum + Number.EPSILON) * 100) / 100;
     }
 
     function getExpenses(flows: Flow[]): Flow[] {

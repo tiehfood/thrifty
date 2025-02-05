@@ -143,7 +143,7 @@
 
 <Navbar class="bg-gray-700 text-gray-200">
     <NavBrand href="/">
-        <Fox class="h-12 me-3 p-1 sm:h-16" alt="Thrifty" />
+        <Fox class="h-12 me-3 p-1 sm:h-16" />
         <span class="self-center whitespace-nowrap text-2xl sm:text-3xl text-primary-800 font-medium">Thrifty</span>
     </NavBrand>
     <div class="ml-auto flex">
