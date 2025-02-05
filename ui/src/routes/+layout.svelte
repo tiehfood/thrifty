@@ -105,9 +105,9 @@
         const uploadedFile = (event.target as HTMLInputElement).files?.[0];
         if (uploadedFile) {
             const reader = new FileReader();
-            reader.onload = debounce((e) => {
-                const svgContent = e.target.result;
-                currentFlow.icon = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent.toString())}`;
+            reader.onload = debounce((event: ProgressEvent) => {
+                const svgContent = (event.target as FileReader).result ?? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><path d="m0,0v1h1V0"/></svg>';
+                currentFlow.icon = `data:image/svg+xml;base64,${btoa(svgContent.toString())}`;
             }, 500);
             reader.readAsText(uploadedFile);
         }
