@@ -366,7 +366,7 @@ WHERE flows_tags.flowId = ?
 		rows, err := getSqlRows(dbCon, tagQuery, []interface{}{item.ID}...)
 		if err != nil {
 		     fmt.Println(errorPrefix, err)
-	     }
+		}
 
 		var tags []string
 		for _, row := range rows {
