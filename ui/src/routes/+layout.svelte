@@ -42,7 +42,8 @@
             name: "",
             description: "",
             amount: 0.0,
-            icon: undefined
+            icon: undefined,
+            tags: [],
         }
     }
 
@@ -91,6 +92,7 @@
             return;
         }
         if (newFlowHandler) {
+            currentFlow.tags = typeof currentFlow.tags === 'string' ? currentFlow.tags.split(",") : currentFlow.tags;
             await newFlowHandler(currentFlow);
         }
         clickOutsideModal = false;
@@ -185,6 +187,10 @@
             </div>
 
         </div>
+        <Label class="space-y-2 mb-6">
+            <span>Tags</span>
+            <Input type="text" placeholder="Enter comma separated tags (optional)" bind:value={currentFlow.tags}/>
+        </Label>
         <div class="flex p-0 pt-4 space-x-3">
             {#if currentFlow.id}
                 {@render addButton(modalEditButton, "submit")}

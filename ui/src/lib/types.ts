@@ -6,6 +6,7 @@ export interface Flow {
     description: string;
     amount:      number;
     icon?:       string;
+    tags?:       string[];
 }
 
 export interface PageButton {
