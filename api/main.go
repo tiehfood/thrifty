@@ -23,6 +23,7 @@ type Flow struct {
 	Description string  `json:"description"`
 	Amount      float64 `json:"amount"`
 	Icon        string  `json:"icon"`
+	Tags      []string  `json:"tags"`
 }
 
 type HTTPResponse struct {
@@ -141,9 +142,22 @@ CREATE TABLE IF NOT EXISTS icons (
     data TEXT,
     hash TEXT);
 `
+
+	addTagsTable := `
+CREATE TABLE IF NOT EXISTS tags (
+    id INTEGER NOT NULL PRIMARY KEY,
+    tag TEXT UNIQUE);
+CREATE TABLE IF NOT EXISTS flows_tags (
+    flowId TEXT,
+    tagId INTEGER,
+    FOREIGN KEY (flowId) REFERENCES flows(id),
+    FOREIGN KEY (tagId) REFERENCES tags(id));
+`
+
 	printSqlVersion(dbCon)
 	execSql(dbCon, queryFlows)
 	execSql(dbCon, queryIcons)
+	execSql(dbCon, addTagsTable)
 	insertIcon(dbCon, defaultIconFlow, &defaultIconId)
 	return dbCon, nil
 }
@@ -157,7 +171,7 @@ func printSqlVersion(dbCon *sql.DB) {
 	fmt.Println("SQLite version: ", row[0])
 }
 
-func execSql(dbCon *sql.DB, query string, args ...interface{}) {
+func execSql(dbCon *sql.DB, query string, args ...interface{}) int64 {
 	result, err := dbCon.Exec(query, args...)
 	if err != nil {
 		fmt.Println(errorPrefix, err)
@@ -166,6 +180,8 @@ func execSql(dbCon *sql.DB, query string, args ...interface{}) {
 	id, _ := result.LastInsertId()
 	numRows, _ := result.RowsAffected()
 	fmt.Printf("LastInsertId %d, RowsAffected: %d\n", id, numRows)
+
+	return id
 }
 
 func getSqlRow(dbCon *sql.DB, query string, args ...interface{}) ([]interface{}, error) {
@@ -196,6 +212,38 @@ func getSqlRow(dbCon *sql.DB, query string, args ...interface{}) ([]interface{},
 	return row, rows.Err()
 }
 
+func getSqlRows(dbCon *sql.DB, query string, args ...interface{}) ([][]interface{}, error) {
+	rows, err := dbCon.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	columns, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
+
+	var data [][]interface{}
+
+	for rows.Next() {
+		row := make([]interface{}, len(columns))
+		scanArgs := make([]interface{}, len(columns))
+		for i := range row {
+			scanArgs[i] = &row[i]
+		}
+
+		if err := rows.Scan(scanArgs...); err != nil {
+			return data, err
+		}
+		data = append(data, row)
+	}
+	if err = rows.Err(); err != nil {
+		return data, err
+	}
+	return data, nil
+}
+
 func getMD5(input string) string {
 	hash := md5.Sum([]byte(input))
 	return fmt.Sprintf("%x", hash)
@@ -213,6 +261,34 @@ func getDbConnection(c *gin.Context) *sql.DB {
 		return nil
 	}
 	return dbCon
+}
+
+func deleteTagsFromFlow(dbCon *sql.DB, flowId *string) {
+	query := "DELETE FROM flows_tags WHERE flowId = ?; DELETE FROM tags WHERE tags.id NOT IN (SELECT tagId FROM flows_tags)"
+	execSql(dbCon, query, []interface{}{flowId}...)
+}
+
+func getOrCreateTag(dbCon *sql.DB, tag *string) (int64, error) {
+	if tag == nil || len(*tag) == 0 {
+		return 0, fmt.Errorf("Empty tag given")
+	}
+	query := "SELECT id, tag FROM tags WHERE tag = ?"
+	row, err := getSqlRow(dbCon, query, []interface{}{tag}...)
+
+	if err != nil {
+		fmt.Println(errorPrefix, err)
+	}
+
+	var tagId int64
+	if row[0] == nil {
+		query = "INSERT OR REPLACE INTO tags (tag) VALUES (?)"
+		queryArgs := []interface{}{tag}
+		tagId = execSql(dbCon, query, queryArgs...)
+	} else {
+		tagId = row[0].(int64)
+	}
+
+	return tagId, nil
 }
 
 func insertIcon(dbCon *sql.DB, flow Flow, iconId *string) string {
@@ -270,17 +346,46 @@ FROM
 	}
 
 	var jsonResult []byte
+	var flows []Flow
 	err := dbCon.QueryRow(query).Scan(&jsonResult)
+	json.Unmarshal(jsonResult, &flows)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Failed to query database"})
 		return
 	}
 
-	if !json.Valid(jsonResult) {
+	for i, item := range flows {
+		tagQuery := `
+SELECT
+    tags.tag
+FROM tags
+LEFT JOIN flows_tags ON tags.id = flows_tags.tagId
+WHERE flows_tags.flowId = ?
+`
+		rows, err := getSqlRows(dbCon, tagQuery, []interface{}{item.ID}...)
+		if err != nil {
+		     fmt.Println(errorPrefix, err)
+		}
+
+		var tags []string
+		for _, row := range rows {
+			if len(row) > 0 {
+				if tag, ok := row[0].(string); ok {
+					tags = append(tags, tag)
+				}
+			}
+		}
+		flows[i].Tags = tags
+	}
+
+	jsonWithTags, _ := json.Marshal(flows)
+
+	if !json.Valid(jsonWithTags) {
 		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Invalid data returned from database"})
 	}
 	c.Header("Content-Type", "application/json")
-	c.Data(http.StatusOK, "application/json", jsonResult)
+	c.Data(http.StatusOK, "application/json", jsonWithTags)
 }
 
 // addFlow godoc
@@ -320,8 +425,16 @@ func addFlow(c *gin.Context) {
 		query = "INSERT OR REPLACE INTO flows (id, name, description, amount, iconId) VALUES (?, ?, ?, ?, ?)"
 		queryArgs = []interface{}{newFlow.ID, newFlow.Name, newFlow.Description, newFlow.Amount, iconId}
 	}
-
 	execSql(dbCon, query, queryArgs...)
+
+	if len(newFlow.Tags) > 0 {
+		for _, tag := range newFlow.Tags {
+			tagId, err := getOrCreateTag(dbCon, &tag)
+			if (err == nil) {
+				execSql(dbCon, "INSERT OR IGNORE INTO flows_tags (flowId, tagId) VALUES (?, ?)", []interface{}{newFlow.ID, &tagId}...)
+			}
+		}
+	}
 
 	c.IndentedJSON(http.StatusCreated, newFlow)
 }
@@ -402,6 +515,17 @@ func updateFlow(c *gin.Context) {
 	}
 
 	execSql(dbCon, query, queryArgs...)
+
+	deleteTagsFromFlow(dbCon, &newFlow.ID)
+	if len(newFlow.Tags) > 0 {
+		for _, tag := range newFlow.Tags {
+			tagId, err := getOrCreateTag(dbCon, &tag)
+			if (err == nil) {
+				execSql(dbCon, "INSERT OR IGNORE INTO flows_tags (flowId, tagId) VALUES (?, ?)", []interface{}{newFlow.ID, &tagId}...)
+			}
+		}
+	}
+
 	c.JSON(http.StatusOK, newFlow)
 }
 
@@ -450,6 +574,7 @@ func deleteFlow(c *gin.Context) {
 			execSql(dbCon, query, []interface{}{iconId}...)
 		}
 	}
+	deleteTagsFromFlow(dbCon, &flowId)
 	query = "DELETE FROM flows WHERE id = ?"
 	execSql(dbCon, query, []interface{}{flowId}...)
 	c.JSON(http.StatusOK, HTTPResponse{Ok: "Flow deleted"})

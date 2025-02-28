@@ -8,6 +8,9 @@
     import { sharedState } from "./layout.svelte.js";
 
     let flows: Flow[] = $state([]);
+    let filteredFlows: Flow[] = $state([]);
+    let tags: string[] = $state([]);
+    let selectedTags: string[] = $state([]);
     let total: number = $state(0);
     let shouldDelete: boolean = $state(false);
 
@@ -30,6 +33,9 @@
             let response = await fetch(`${currentProtocol}://${currentHostname}${!!currentPort ? ":" : ""}${currentPort}/api/flows`);
             if (!response.ok) throw new Error(response.statusText);
             flows = await response.json();
+            filteredFlows = flows;
+            tags = [null, ...new Set(flows.filter(flow => flow.tags).map(flow => flow.tags).flat().sort())];
+            selectedTags = tags;
             setTotal();
         } catch (error) {
             console.error("Error fetching flows:", error);
@@ -93,7 +99,7 @@
     }
 
     function setTotal() {
-        let sum = flows.reduce((accumulator, currentFlow) => accumulator + currentFlow.amount, 0);
+        let sum = filteredFlows.reduce((accumulator, currentFlow) => accumulator + currentFlow.amount, 0);
         total = Math.round((sum + Number.EPSILON) * 100) / 100;
     }
 
@@ -107,6 +113,41 @@
 
     function shouldUseColumns(flows: Flow[]): string {
         return (getIncome(flows).length == 0 || getExpenses(flows).length == 0) ? "" : "md:grid-cols-2 gap-4"
+    }
+
+    function selectAllTags() {
+        selectedTags = tags;
+        filterFlows();
+    }
+
+    function unselectAllTags() {
+        selectedTags = [];
+        filterFlows();
+    }
+
+    function toggleSelectedTag(event: Event) {
+        let {name, checked} = event.target;
+        if (!name) name = null;
+
+        if (checked) {
+            selectedTags.push(name);
+        } else {
+            selectedTags = selectedTags.filter(t => t !== name);
+        }
+
+        filterFlows();
+    }
+
+    function filterFlows() {
+        filteredFlows = flows.filter(item => {
+            if (item.tags === null && selectedTags.includes(null)) return true;
+
+            return item.tags?.some(t => selectedTags.includes(t));
+        })
+
+        getExpenses(filteredFlows);
+        getIncome(filteredFlows);
+        setTotal();
     }
 
     newFlowHandlerStore.set(newFlowHandler);
@@ -162,9 +203,31 @@
     </div>
     {#if (flows.length > 0)}
         <hr class="h-0.5 my-6 bg-gray-700 border-0">
+        {#if (tags.length > 0)}
+            <div class="p-1">
+                <Card padding="xs" size="sm" class="mx-auto flex-wrap p-2">
+                     <p class="text-lg font-bold text-gray-900 truncate">
+                        Tags
+                    </p>
+                    <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 mx-1 my-1 text-xs font-medium text-red-700 ring-1 ring-blue-700/10 ring-inset text-nowrap">
+                        <button class="cursor-pointer" onclick={selectAllTags}>&lt;All&gt;</button>
+                    </span>
+                    <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 mx-1 my-1 text-xs font-medium text-red-700 ring-1 ring-blue-700/10 ring-inset text-nowrap">
+                        <button class="cursor-pointer" onclick={unselectAllTags}>&lt;None&gt;</button>
+                    </span>
+                    {#each tags as tag}
+                        <span class:bg-red-50={tag === null}
+                              class:text-red-700={tag === null}
+                              class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 mx-1 my-1 text-xs font-medium text-blue-700 ring-1 ring-blue-700/10 ring-inset text-nowrap">
+                            <label>{tag || '<Empty>'}&nbsp;<input type="checkbox" checked={selectedTags.includes(tag)} name={tag} onchange={toggleSelectedTag} /></label>
+                        </span>
+                    {/each}
+                </Card>
+             </div>
+         {/if}
     {/if}
     <div class="grid grid-cols-1 {shouldUseColumns(flows)}">
-        {@render flowCard(getIncome(flows))}
-        {@render flowCard(getExpenses(flows))}
+        {@render flowCard(getIncome(filteredFlows))}
+        {@render flowCard(getExpenses(filteredFlows))}
     </div>
 </div>
