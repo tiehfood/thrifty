@@ -23,7 +23,7 @@ type Flow struct {
 	Description string  `json:"description"`
 	Amount      float64 `json:"amount"`
 	Icon        string  `json:"icon"`
-    Tags      []string  `json:"tags"`
+	Tags      []string  `json:"tags"`
 }
 
 type HTTPResponse struct {
@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS icons (
     hash TEXT);
 `
 
-    addTagsTable := `
+	addTagsTable := `
 CREATE TABLE IF NOT EXISTS tags (
     id INTEGER NOT NULL PRIMARY KEY,
     tag TEXT UNIQUE);
@@ -154,10 +154,10 @@ CREATE TABLE IF NOT EXISTS flows_tags (
     FOREIGN KEY (tagId) REFERENCES tags(id));
 `
 
-    printSqlVersion(dbCon)
+	printSqlVersion(dbCon)
 	execSql(dbCon, queryFlows)
 	execSql(dbCon, queryIcons)
-    execSql(dbCon, addTagsTable)
+	execSql(dbCon, addTagsTable)
 	insertIcon(dbCon, defaultIconFlow, &defaultIconId)
 	return dbCon, nil
 }
@@ -181,7 +181,7 @@ func execSql(dbCon *sql.DB, query string, args ...interface{}) int64 {
 	numRows, _ := result.RowsAffected()
 	fmt.Printf("LastInsertId %d, RowsAffected: %d\n", id, numRows)
 
-    return id
+	return id
 }
 
 func getSqlRow(dbCon *sql.DB, query string, args ...interface{}) ([]interface{}, error) {
@@ -224,24 +224,24 @@ func getSqlRows(dbCon *sql.DB, query string, args ...interface{}) ([][]interface
 		return nil, err
 	}
 
-    var data [][]interface{}
+	var data [][]interface{}
 
-    for rows.Next() {
-        row := make([]interface{}, len(columns))
-        scanArgs := make([]interface{}, len(columns))
-	    for i := range row {
-	        scanArgs[i] = &row[i]
-	    }
+	for rows.Next() {
+		row := make([]interface{}, len(columns))
+		scanArgs := make([]interface{}, len(columns))
+		for i := range row {
+			scanArgs[i] = &row[i]
+		}
 
-        if err := rows.Scan(scanArgs...); err != nil {
-            return data, err
-        }
-        data = append(data, row)
-    }
-    if err = rows.Err(); err != nil {
-        return data, err
-    }
-    return data, nil
+		if err := rows.Scan(scanArgs...); err != nil {
+			return data, err
+		}
+		data = append(data, row)
+	}
+	if err = rows.Err(); err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 func getMD5(input string) string {
@@ -346,11 +346,11 @@ FROM
 	}
 
 	var jsonResult []byte
-    var flows []Flow
+	var flows []Flow
 	err := dbCon.QueryRow(query).Scan(&jsonResult)
-    json.Unmarshal(jsonResult, &flows)
+	json.Unmarshal(jsonResult, &flows)
 
-    if err != nil {
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Failed to query database"})
 		return
 	}
@@ -377,7 +377,7 @@ WHERE flows_tags.flowId = ?
 			}
 		}
 		flows[i].Tags = tags
-    }
+	}
 
 	jsonWithTags, _ := json.Marshal(flows)
 
