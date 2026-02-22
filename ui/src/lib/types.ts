@@ -11,6 +11,6 @@ export interface Flow {
 export interface PageButton {
     name:         string;
     clickHandle?: MouseEventHandler<HTMLButtonElement>;
-    color?:       "alternative" | "none" | "red" | "yellow" | "green" | "purple" | "blue" | "light" | "dark" | "primary";
+    color?:       "alternative" | "red" | "yellow" | "green" | "purple" | "blue" | "light" | "dark" | "primary";
     hidden?:      boolean;
 }

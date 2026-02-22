@@ -116,7 +116,7 @@
     <div>
         {#each flows as flow}
             <div class="p-1">
-                <Card padding="xs" size="sm" class="mx-auto relative">
+                <Card size="sm" class="mx-auto relative p-3">
                     <div class="flex items-center space-x-4 rtl:space-x-reverse px-2">
                         <img class="justify-center rounded-none w-10 h-10 flex-shrink-0 bg-white" src={flow.icon} alt="Icon" />
                         <div class="flex-1 min-w-0">
@@ -147,7 +147,7 @@
 
 <div class="p-8">
     <div class="p-1">
-        <Card padding="lg" size="sm" class="mx-auto">
+        <Card size="sm" class="mx-auto p-6">
             <div class="flex items-center space-x-4 rtl:space-x-reverse">
                 <div class="flex-1 min-w-0">
                     <p class="text-lg font-bold text-gray-900 truncate">
