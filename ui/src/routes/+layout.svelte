@@ -15,13 +15,12 @@
         Modal,
         Navbar,
         NavBrand,
-        NumberInput
     } from "flowbite-svelte";
 
-    const editButton: PageButton        = { name: "Edit", clickHandle: clickEdit, color: "alternative" }
+    const editButton: PageButton        = { name: "Edit", clickHandle: clickEdit, color: "light" }
     const newButton: PageButton         = { name: "New Entry", clickHandle: clickNew }
     const dummyButton: PageButton       = { name: "", hidden: true }
-    const closeButton: PageButton       = { name: "Close", clickHandle: clickClose, color: "alternative" }
+    const closeButton: PageButton       = { name: "Close", clickHandle: clickClose, color: "light" }
     const modalCloseButton: PageButton  = { name: "Close", clickHandle: clickModalClose, color: "alternative" }
     const modalAddButton: PageButton    = { name: "Add" }
     const modalEditButton: PageButton    = { name: "Edit" }
@@ -158,7 +157,7 @@
 </Navbar>
 
 {@render children()}
-<Modal title={currentFlow.id ? "Edit entry" : "Add new entry"} bind:open={clickOutsideModal} outsideclose backdropClass="fixed inset-0 z-40 bg-gray-900/50">
+<Modal title={currentFlow.id ? "Edit entry" : "Add new entry"} bind:open={clickOutsideModal} outsideclose>
     <form onsubmit={handleSubmit}>
         <Label class="space-y-2 mb-6">
             <span>Name</span>
@@ -171,7 +170,7 @@
         <div class="grid grid-cols-2 gap-8">
             <Label class="space-y-2 mb-6">
                 <span>Amount</span>
-                <NumberInput onfocus={handleFocus} id="numberInput" step="0.01" bind:value={currentFlow.amount}/>
+                <Input type="number" onfocus={handleFocus} id="numberInput" step="0.01" bind:value={currentFlow.amount}/>
             </Label>
             <div class="flex justify-center">
                 <input type="file" accept=".svg" onchange={handleFileUpload} class="hidden" bind:this={hiddenFileInputRef} />
@@ -179,7 +178,7 @@
                     {#if (currentFlow.icon === undefined)}
                         <span class="text-center text-gray-600">Icon (optional)</span>
                     {:else }
-                        <Img size="w-full h-full" class="object-contain" src={currentFlow.icon} alt="Icon" />
+                        <Img class="object-contain w-full h-full" src={currentFlow.icon} alt="Icon" />
                     {/if}
                 </button>
             </div>
@@ -196,7 +195,7 @@
     </form>
 </Modal>
 
-<Footer>
+<Footer footerType="logo" class="bg-transparent shadow-none">
     <hr class="my-6 border-gray-200 sm:mx-auto lg:my-8" />
     <FooterCopyright href="https://github.com/tiehfood/thrifty" by="tiehfood" copyrightMessage="| All Rights Reserved"/>
 </Footer>
