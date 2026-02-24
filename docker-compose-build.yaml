@@ -1,7 +1,7 @@
 services:
   traefik:
     container_name: traefik
-    image: traefik:3.3
+    image: traefik:3.6
     ports:
       - "9090:80"
     environment:

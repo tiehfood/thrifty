@@ -8,6 +8,16 @@ export interface Flow {
     icon?:       string;
 }
 
+export interface User {
+    id:   string;
+    name: string;
+}
+
+export interface Settings {
+    multiUserEnabled: boolean;
+    currentUser: User;
+}
+
 export interface PageButton {
     name:         string;
     clickHandle?: MouseEventHandler<HTMLButtonElement>;
