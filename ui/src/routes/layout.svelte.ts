@@ -1,1 +1,1 @@
-export const sharedState = $state({"isEditMode": false});
+export { sharedState } from '$lib/sharedState.svelte';
