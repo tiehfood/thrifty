@@ -2,7 +2,7 @@
     import "../app.css";
     import debounce from "debounce";
     import type { Flow, User, PageButton } from "$lib/types";
-    import { newFlowHandlerStore, editFlowHandlerStore } from "$lib/stores";
+    import { newFlowHandlerStore, editFlowHandlerStore, NUMBER_FORMATS } from "$lib/stores";
     import { sharedState } from "$lib/sharedState.svelte";
     import { settings, loadSettings, patchSettings } from "$lib/settings.svelte";
     import { users, loadUsers, createUser, updateUser, removeUser } from "$lib/users.svelte";
@@ -297,6 +297,25 @@
             Multi user support
         </Toggle>
     </Label>
+    <div class="mb-6">
+        <span class="block mb-2 text-sm font-medium text-gray-900">Number format</span>
+        <div class="space-y-3">
+            {#each NUMBER_FORMATS as fmt}
+                <div class="flex items-center gap-2">
+                    <input
+                        type="radio"
+                        id="fmt-{fmt.value}"
+                        name="numberFormat"
+                        value={fmt.value}
+                        bind:group={settings.numberFormat}
+                        onchange={() => patchSettings({ numberFormat: fmt.value })}
+                        class="w-5 h-5 cursor-pointer accent-primary-600"
+                    />
+                    <label for="fmt-{fmt.value}" class="text-sm font-medium text-gray-900 cursor-pointer">{fmt.name}</label>
+                </div>
+            {/each}
+        </div>
+    </div>
     <div class="flex p-0 pt-4">
         <Button onclick={() => settingsOpen = false} color="alternative">Close</Button>
     </div>

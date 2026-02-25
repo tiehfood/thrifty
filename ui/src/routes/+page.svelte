@@ -4,8 +4,11 @@
     import NumberFlow, { continuous } from "@number-flow/svelte";
 
     import { onMount } from "svelte";
-    import { newFlowHandlerStore, editFlowHandlerStore } from "$lib/stores.js";
+    import { newFlowHandlerStore, editFlowHandlerStore, NUMBER_FORMATS } from "$lib/stores.js";
     import { sharedState } from "./layout.svelte.js";
+    import { settings } from "$lib/settings.svelte";
+
+    const currentFormat = $derived(NUMBER_FORMATS.find(f => f.value === settings.numberFormat) ?? NUMBER_FORMATS[0]);
 
     let flows: Flow[] = $state([]);
     let total: number = $state(0);
@@ -124,7 +127,7 @@
                             </p>
                         </div>
                         <div class="inline-flex items-center text-base font-semibold text-gray-900">
-                            <NumberFlow locales="de-DE" animated={false} format={{ style: 'currency', currency: 'EUR', trailingZeroDisplay: 'stripIfInteger' }} value={flow.amount} />
+                            <NumberFlow locales={currentFormat.locales} animated={false} format={currentFormat.format} value={flow.amount} />
                         </div>
                     </div>
                     {#if (sharedState.isEditMode)}
@@ -151,7 +154,7 @@
                     </p>
                 </div>
                 <div class="inline-flex items-center text-base font-black text-gray-900">
-                    <NumberFlow locales="de-DE" plugins={[continuous]} format={{ style: 'currency', currency: 'EUR', trailingZeroDisplay: 'stripIfInteger' }} value={total} />
+                    <NumberFlow locales={currentFormat.locales} plugins={[continuous]} format={currentFormat.format} value={total} />
                 </div>
             </div>
         </Card>

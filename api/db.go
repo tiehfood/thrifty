@@ -49,6 +49,12 @@ var migrations = []Migration{
 			`ALTER TABLE flows ADD COLUMN userId TEXT REFERENCES users(id) DEFAULT '00000000-0000-0000-0000-000000000001'`,
 		},
 	},
+	{
+		Version: 3,
+		Statements: []string{
+			`ALTER TABLE settings ADD COLUMN numberFormat TEXT NOT NULL DEFAULT 'eu-decimal'`,
+		},
+	},
 }
 
 func runMigrations(dbCon *sql.DB) error {

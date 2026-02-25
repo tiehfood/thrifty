@@ -21,12 +21,12 @@ func getSettings(c *gin.Context) {
 	}
 
 	var multiUserEnabled int64
-	var userId, userName string
+	var userId, userName, numberFormat string
 	err := dbCon.QueryRow(`
-SELECT s.multiUserEnabled, u.id, u.name
+SELECT s.multiUserEnabled, u.id, u.name, s.numberFormat
 FROM settings s
 JOIN users u ON s.currentUserId = u.id
-WHERE s.id = 1`).Scan(&multiUserEnabled, &userId, &userName)
+WHERE s.id = 1`).Scan(&multiUserEnabled, &userId, &userName, &numberFormat)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, HTTPError{Error: "Failed to query settings"})
 		return
@@ -35,6 +35,7 @@ WHERE s.id = 1`).Scan(&multiUserEnabled, &userId, &userName)
 	c.JSON(http.StatusOK, Settings{
 		MultiUserEnabled: multiUserEnabled == 1,
 		CurrentUser:      &User{ID: userId, Name: userName},
+		NumberFormat:     numberFormat,
 	})
 }
 
@@ -61,6 +62,10 @@ func updateSettings(c *gin.Context) {
 
 	if patch.CurrentUserId != nil {
 		execSql(dbCon, "UPDATE settings SET currentUserId = ? WHERE id = 1", *patch.CurrentUserId)
+	}
+
+	if patch.NumberFormat != nil {
+		execSql(dbCon, "UPDATE settings SET numberFormat = ? WHERE id = 1", *patch.NumberFormat)
 	}
 
 	if patch.MultiUserEnabled != nil {

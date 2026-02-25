@@ -6,7 +6,8 @@ export const settings = $state<Settings>({
     currentUser: {
         id: "",
         name: ""
-    }
+    },
+    numberFormat: 'eu-decimal',
 });
 
 export async function loadSettings(): Promise<void> {
@@ -16,6 +17,7 @@ export async function loadSettings(): Promise<void> {
         const s: Settings = await res.json();
         settings.multiUserEnabled = s.multiUserEnabled;
         settings.currentUser = s.currentUser;
+        settings.numberFormat = s.numberFormat;
         sharedState.multiUserEnabled = s.multiUserEnabled;
     } catch (e) {
         console.error("Error loading settings:", e);
@@ -25,7 +27,8 @@ export async function loadSettings(): Promise<void> {
 export async function patchSettings(
     patch: {
         multiUserEnabled?: boolean;
-        currentUserId?: string
+        currentUserId?: string;
+        numberFormat?: string;
     }
 ): Promise<void> {
     try {
