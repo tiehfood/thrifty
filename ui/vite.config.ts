@@ -24,6 +24,9 @@ const resolvePnpmSources = {
 }
 
 export default defineConfig({
+	define: {
+		VERSION: JSON.stringify(process.env.VERSION ?? 'dev'),
+	},
 	plugins: [
 		resolvePnpmSources,
 		tailwindcss(),

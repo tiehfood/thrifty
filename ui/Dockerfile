@@ -1,5 +1,8 @@
 FROM node:alpine AS builder
 
+ARG VERSION
+ENV VERSION=${VERSION}
+
 COPY . /app
 WORKDIR /app
 
