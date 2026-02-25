@@ -41,6 +41,11 @@ Frameworks used:
 |:------------------------------------:|:------------------------------------:|
 | ![Screenshot3](doc/screenshot_3.png) | ![Screenshot4](doc/screenshot_4.png) |
 
+## Settings
+![Screenshot5](doc/screenshot_5.png)
+* __Multi user support__: Allow multiple users (no login, just simple users).
+* __Number format__: Choos different number formats on your preference.
+
 ## Running the app
 
 Every release since 1.2.0 should create a docker image on DockerHub.
@@ -87,8 +92,7 @@ docker compose -f docker-compose-build.yaml up -d
 
 ### Frontend
 Install node and node modules.
-Running locally requires you to change the API URL in [+page.svelte](ui/src/routes/+page.svelte).
-Change `currentProtocol`, `currentHostname` and `currentPort` in the _onMount_ method to where your API development is running on.
+Running locally requires you to change the `apiBase` in [sharedState.svelte.ts](ui/src/lib/sharedState.svelte.ts) to where your API development is running on.
 ```bash
 cd ui
 

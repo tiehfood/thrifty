@@ -16,6 +16,14 @@ export interface User {
 export interface Settings {
     multiUserEnabled: boolean;
     currentUser: User;
+    numberFormat: string;
+}
+
+export interface NumberFormatOption {
+    value:   string;
+    name:    string;
+    locales: string;
+    format:  Intl.NumberFormatOptions;
 }
 
 export interface PageButton {

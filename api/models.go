@@ -14,14 +14,16 @@ type User struct {
 }
 
 type Settings struct {
-	MultiUserEnabled bool  `json:"multiUserEnabled"`
-	CurrentUser      *User `json:"currentUser"`
+	MultiUserEnabled bool   `json:"multiUserEnabled"`
+	CurrentUser      *User  `json:"currentUser"`
+	NumberFormat     string `json:"numberFormat"`
 }
 
 // SettingsPatch uses pointers so absent fields are nil (not updated).
 type SettingsPatch struct {
 	MultiUserEnabled *bool   `json:"multiUserEnabled"`
 	CurrentUserId    *string `json:"currentUserId"`
+	NumberFormat     *string `json:"numberFormat"`
 }
 
 type HTTPResponse struct {
