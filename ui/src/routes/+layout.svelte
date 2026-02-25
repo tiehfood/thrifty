@@ -14,6 +14,8 @@
         Card,
         Footer,
         FooterCopyright,
+        FooterLink,
+        FooterLinkGroup,
         Indicator,
         Input,
         Img,
@@ -389,5 +391,14 @@
 
 <Footer footerType="logo" class="bg-transparent shadow-none">
     <hr class="my-6 border-gray-200 sm:mx-auto lg:my-8" />
-    <FooterCopyright href="https://github.com/tiehfood/thrifty" by="tiehfood" copyrightMessage="| All Rights Reserved"/>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-center text-center sm:text-left">
+    <FooterCopyright href="https://buymeacoffee.com/tiehfood" by="tiehfood" copyrightMessage="| All Rights Reserved |&nbsp;"/>
+        <FooterLinkGroup class="flex flex-wrap items-center text-sm text-gray-500 sm:mt-0">
+            {#if VERSION !== "dev"}
+                <FooterLink href="https://github.com/tiehfood/thrifty/releases/tag/{VERSION}">{VERSION}</FooterLink>
+            {:else}
+                <FooterLink href="https://github.com/tiehfood/thrifty">dev</FooterLink>
+            {/if}
+        </FooterLinkGroup>
+    </div>
 </Footer>

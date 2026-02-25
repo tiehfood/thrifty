@@ -53,6 +53,8 @@ jobs:
           context: ./ui
           push: true
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ needs.release.outputs.VERSION_NUMBER }}
           tags: "${{ vars.DOCKERHUB_USERNAME }}/thrifty-ui:latest, ${{ vars.DOCKERHUB_USERNAME }}/thrifty-ui:${{ needs.release.outputs.VERSION_NUMBER }}"
       - name: Build and push API
         uses: docker/build-push-action@v6

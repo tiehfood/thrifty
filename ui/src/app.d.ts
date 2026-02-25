@@ -3,6 +3,7 @@
 import '@poppanator/sveltekit-svg/dist/svg'
 
 declare global {
+	const VERSION: string;
 	namespace App {
 		// interface Error {}
 		// interface Locals {}
