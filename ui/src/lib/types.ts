@@ -8,6 +8,12 @@ export interface Flow {
     icon?:       string;
 }
 
+export interface Icon {
+    id:     string;
+    data:   string;
+    isUsed: boolean;
+}
+
 export interface User {
     id:   string;
     name: string;

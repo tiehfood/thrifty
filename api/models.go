@@ -19,11 +19,20 @@ type Settings struct {
 	NumberFormat     string `json:"numberFormat"`
 }
 
-// SettingsPatch uses pointers so absent fields are nil (not updated).
 type SettingsPatch struct {
 	MultiUserEnabled *bool   `json:"multiUserEnabled"`
 	CurrentUserId    *string `json:"currentUserId"`
 	NumberFormat     *string `json:"numberFormat"`
+}
+
+type Icon struct {
+	ID     string `json:"id"`
+	Data   string `json:"data"`
+	IsUsed bool   `json:"isUsed"`
+}
+
+type IconRequest struct {
+	Data string `json:"data"`
 }
 
 type HTTPResponse struct {
