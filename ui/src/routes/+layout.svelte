@@ -23,6 +23,9 @@
         Modal,
         Navbar,
         NavBrand,
+        Checkbox,
+        Dropdown,
+        DropdownItem,
         Toggle,
     } from "flowbite-svelte";
     import { onMount } from "svelte";
@@ -39,9 +42,38 @@
 
     let buttons: PageButton[] = $state([editButton]);
 
+    const PERIOD_OPTIONS = [
+        { value: 'weekly',        name: 'weekly' },
+        { value: 'bi-weekly',     name: 'bi-weekly' },
+        { value: 'bi-monthly',    name: 'bi-monthly' },
+        { value: 'tri-monthly',   name: 'tri-monthly' },
+        { value: 'semi-annually', name: 'semi-annually' },
+        { value: 'annually',      name: 'annually' },
+    ];
+
+    const sameWidth = {
+        name: 'sameWidth',
+        fn({ rects, elements }: { rects: any; elements: any }) {
+            Object.assign(elements.floating.style, { width: `${rects.reference.width}px` });
+            return {};
+        },
+    };
+
+    const PERIOD_MULTIPLIERS: Record<string, number> = {
+        'weekly':        52 / 12,
+        'bi-weekly':     26 / 12,
+        'bi-monthly':    1 / 2,
+        'tri-monthly':   1 / 3,
+        'semi-annually': 1 / 6,
+        'annually':      1 / 12,
+    };
+
     let flowModalOpen = $state(false);
     let hiddenFileInputRef: HTMLInputElement;
     let currentFlow: Flow = $state(getEmptyFlow());
+    let notMonthly = $state(false);
+    let period = $state('weekly');
+    let periodDropdownOpen = $state(false);
     let newFlowHandler: (flow: Flow) => void;
     newFlowHandlerStore.subscribe((handler: (flow: Flow) => void) => newFlowHandler = handler);
 
@@ -80,6 +112,8 @@
 
     function clickNew() {
         currentFlow = getEmptyFlow();
+        notMonthly = false;
+        period = 'weekly';
         flowModalOpen = true;
     }
 
@@ -112,6 +146,9 @@
 
     async function handleSubmit(event: Event): Promise<void> {
         event.preventDefault();
+        if (notMonthly) {
+            currentFlow.amount = Math.round(currentFlow.amount * (PERIOD_MULTIPLIERS[period] ?? 1) * 100) / 100;
+        }
         const errors = validateForm(currentFlow);
         if (errors.length > 0) {
             alert(errors.join("\n"));
@@ -122,6 +159,8 @@
         }
         flowModalOpen = false;
         currentFlow = getEmptyFlow();
+        notMonthly = false;
+        period = 'weekly';
     }
 
     function openFileDialog() {
@@ -267,10 +306,34 @@
             <Input type="text" placeholder="Enter description (optional)" bind:value={currentFlow.description}/>
         </Label>
         <div class="grid grid-cols-2 gap-8">
-            <Label class="space-y-2 mb-6">
-                <span>Amount</span>
-                <Input type="number" onfocus={handleFocus} id="numberInput" step="0.01" bind:value={currentFlow.amount}/>
-            </Label>
+            <div class="space-y-2 mb-6">
+                <Label for="numberInput">Amount</Label>
+                <div class="flex items-center gap-3">
+                    <div class="w-28">
+                        <Input type="number" onfocus={handleFocus} id="numberInput" step="0.01" bind:value={currentFlow.amount}/>
+                    </div>
+                    {#if !currentFlow.id}
+                        <Checkbox bind:checked={notMonthly} class="accent-primary-700">not monthly</Checkbox>
+                    {/if}
+                </div>
+                {#if !currentFlow.id && notMonthly}
+                    <Button type="button" color="light" class="w-full flex justify-between items-center px-2.5!">
+                        {PERIOD_OPTIONS.find(o => o.value === period)?.name}
+                        <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                        </svg>
+                    </Button>
+                    <Dropdown simple bind:isOpen={periodDropdownOpen} middlewares={[sameWidth]}>
+                        {#each PERIOD_OPTIONS as opt}
+                            <DropdownItem
+                                onclick={() => { period = opt.value; periodDropdownOpen = false; }}
+                                class={period === opt.value ? 'font-semibold text-primary-600' : ''}
+                                style="padding-left: 0.625rem; padding-right: 0.625rem;"
+                            >{opt.name}</DropdownItem>
+                        {/each}
+                    </Dropdown>
+                {/if}
+            </div>
             <div class="flex justify-center">
                 <input type="file" accept=".svg" onchange={handleFileUpload} class="hidden" bind:this={hiddenFileInputRef} />
                 <button type="button" onclick={openFileDialog} class="relative flex {currentFlow.icon === undefined ? 'items-center' : ''} justify-center rounded p-1 ring-2 ring-gray-300 {currentFlow.icon === undefined ? 'bg-gray-100' : 'bg-white'} aspect-square h-24 w-24 m-1 flex-shrink-0 cursor-pointer">
