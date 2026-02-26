@@ -6,6 +6,7 @@
     import { sharedState } from "$lib/sharedState.svelte";
     import { settings, loadSettings, patchSettings } from "$lib/settings.svelte";
     import { users, loadUsers, createUser, updateUser, removeUser } from "$lib/users.svelte";
+    import { icons, loadIcons, addIcons, removeIcon } from "$lib/icons.svelte";
     import Fox from "../icons/fox.svg?component";
     import Gear from "../icons/gear.svg?component";
     import Account from "../icons/account.svg?component";
@@ -70,6 +71,7 @@
 
     let flowModalOpen = $state(false);
     let hiddenFileInputRef: HTMLInputElement;
+    let hiddenIconFileInputRef: HTMLInputElement;
     let currentFlow: Flow = $state(getEmptyFlow());
     let notMonthly = $state(false);
     let period = $state('weekly');
@@ -78,6 +80,18 @@
     newFlowHandlerStore.subscribe((handler: (flow: Flow) => void) => newFlowHandler = handler);
 
     let settingsOpen = $state(false);
+    let settingsLeftColHeight = $state(0);
+
+    let galleryOpen = $state(false);
+
+    async function openGallery() {
+        await loadIcons();
+        galleryOpen = true;
+    }
+    // 96px = icon header (min-h-6 + mb-6 = 48px) + Add Icon section (pt-2 + button ≈ 48px)
+    let iconContainerMaxH = $derived(
+        settingsLeftColHeight > 0 ? Math.max(0, settingsLeftColHeight - 96) : 272
+    );
 
     let multiUserEnabledLocal = $state(false);
     $effect(() => { multiUserEnabledLocal = settings.multiUserEnabled; });
@@ -177,6 +191,21 @@
             }, 500);
             reader.readAsText(uploadedFile);
         }
+    }
+
+    function handleIconUpload(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const files = Array.from(input.files ?? []);
+        const reads = files.map(file => new Promise<string>(resolve => {
+            const reader = new FileReader();
+            reader.onload = (e: ProgressEvent) => {
+                const svgContent = (e.target as FileReader).result ?? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><path d="m0,0v1h1V0"/></svg>';
+                resolve(`data:image/svg+xml;base64,${btoa(svgContent.toString())}`);
+            };
+            reader.readAsText(file);
+        }));
+        Promise.all(reads).then(dataUris => addIcons(dataUris));
+        input.value = '';
     }
 
     async function editFlowHandler(flow: Flow) {
@@ -282,7 +311,7 @@
                 {button.name}
             </Button>
         {/each}
-        <Button onclick={() => settingsOpen = true} color="light" class="me-3 px-3 py-2 sm:py-2.5">
+        <Button onclick={() => { loadIcons(); settingsOpen = true; }} color="light" class="me-3 px-3 py-2 sm:py-2.5">
             <Gear class="w-5 h-5" />
         </Button>
         {#if sharedState.multiUserEnabled}
@@ -334,15 +363,18 @@
                     </Dropdown>
                 {/if}
             </div>
-            <div class="flex justify-center">
-                <input type="file" accept=".svg" onchange={handleFileUpload} class="hidden" bind:this={hiddenFileInputRef} />
-                <button type="button" onclick={openFileDialog} class="relative flex {currentFlow.icon === undefined ? 'items-center' : ''} justify-center rounded p-1 ring-2 ring-gray-300 {currentFlow.icon === undefined ? 'bg-gray-100' : 'bg-white'} aspect-square h-24 w-24 m-1 flex-shrink-0 cursor-pointer">
-                    {#if currentFlow.icon === undefined}
-                        <span class="text-center text-gray-600">Icon (optional)</span>
-                    {:else}
-                        <Img class="object-contain w-full h-full" src={currentFlow.icon} alt="Icon" />
-                    {/if}
-                </button>
+            <div class="flex items-center justify-center gap-2 self-start">
+                <div class="flex justify-center">
+                    <input type="file" accept=".svg" onchange={handleFileUpload} class="hidden" bind:this={hiddenFileInputRef} />
+                    <button type="button" onclick={openFileDialog} class="relative flex {currentFlow.icon === undefined ? 'items-center' : ''} justify-center rounded p-1 ring-2 ring-gray-300 {currentFlow.icon === undefined ? 'bg-gray-100' : 'bg-white'} aspect-square h-24 w-24 m-1 flex-shrink-0 cursor-pointer">
+                        {#if currentFlow.icon === undefined}
+                            <span class="text-center text-gray-600">Icon (optional)</span>
+                        {:else}
+                            <Img class="object-contain w-full h-full" src={currentFlow.icon} alt="Icon" />
+                        {/if}
+                    </button>
+                </div>
+                <Button type="button" color="alternative" onclick={openGallery}>Gallery</Button>
             </div>
         </div>
         <div class="flex p-0 pt-4 space-x-3">
@@ -356,33 +388,92 @@
     </form>
 </Modal>
 
-<Modal title="Settings" bind:open={settingsOpen} outsideclose>
-    <Label class="space-y-2 mb-6">
-        <Toggle bind:checked={multiUserEnabledLocal} onchange={handleMultiUserToggle}>
-            Multi user support
-        </Toggle>
-    </Label>
-    <div class="mb-6">
-        <span class="block mb-2 text-sm font-medium text-gray-900">Number format</span>
-        <div class="space-y-3">
-            {#each NUMBER_FORMATS as fmt}
-                <div class="flex items-center gap-2">
-                    <input
-                        type="radio"
-                        id="fmt-{fmt.value}"
-                        name="numberFormat"
-                        value={fmt.value}
-                        bind:group={settings.numberFormat}
-                        onchange={() => patchSettings({ numberFormat: fmt.value })}
-                        class="w-5 h-5 cursor-pointer accent-primary-600"
-                    />
-                    <label for="fmt-{fmt.value}" class="text-sm font-medium text-gray-900 cursor-pointer">{fmt.name}</label>
-                </div>
-            {/each}
+<Modal title="Choose icon" bind:open={galleryOpen} outsideclose size="sm" class="!w-fit">
+    {#if icons.length === 0}
+        <div class="flex items-center justify-center rounded p-4 ring-2 ring-gray-300 bg-gray-100">
+            <span class="text-center text-gray-600">Add icons on settings page</span>
         </div>
-    </div>
+    {:else}
+        <div class="p-2 ring-2 ring-gray-300 bg-gray-100 rounded w-fit max-h-[188px] overflow-y-auto">
+            <div class="grid grid-cols-8 gap-1">
+                {#each icons as icon}
+                    <button
+                        type="button"
+                        onclick={() => { currentFlow.icon = icon.data; galleryOpen = false; }}
+                        class="relative h-10 w-10 flex-shrink-0 rounded cursor-pointer hover:ring-2 hover:ring-primary-400 {currentFlow.icon === icon.data ? 'ring-2 ring-primary-500' : ''}"
+                    >
+                        <Img class="object-contain w-full h-full" src={icon.data} alt="Icon" />
+                    </button>
+                {/each}
+            </div>
+        </div>
+    {/if}
     <div class="flex p-0 pt-4">
-        <Button onclick={() => settingsOpen = false} color="alternative">Close</Button>
+        <Button onclick={() => galleryOpen = false} color="alternative">Close</Button>
+    </div>
+</Modal>
+
+<Modal title="Settings" bind:open={settingsOpen} outsideclose size="md">
+    <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col" bind:clientHeight={settingsLeftColHeight}>
+            <Label class="space-y-2 mb-6">
+                <Toggle bind:checked={multiUserEnabledLocal} onchange={handleMultiUserToggle}>
+                    Multi user support
+                </Toggle>
+            </Label>
+            <div class="mb-6">
+                <span class="block mb-2 text-sm font-medium text-gray-900">Number format</span>
+                <div class="space-y-3">
+                    {#each NUMBER_FORMATS as fmt}
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="radio"
+                                id="fmt-{fmt.value}"
+                                name="numberFormat"
+                                value={fmt.value}
+                                bind:group={settings.numberFormat}
+                                onchange={() => patchSettings({ numberFormat: fmt.value })}
+                                class="w-5 h-5 cursor-pointer accent-primary-600"
+                            />
+                            <label for="fmt-{fmt.value}" class="text-sm font-medium text-gray-900 cursor-pointer">{fmt.name}</label>
+                        </div>
+                    {/each}
+                </div>
+            </div>
+            <div class="mt-auto pt-4">
+                <Button onclick={() => settingsOpen = false} color="alternative">Close</Button>
+            </div>
+        </div>
+        <div class="flex flex-col">
+            <div class="flex items-center min-h-6 mb-6">
+                <span class="text-sm font-medium text-gray-900">Icons</span>
+            </div>
+            <input type="file" accept=".svg" multiple onchange={handleIconUpload} class="hidden" bind:this={hiddenIconFileInputRef} />
+            <div class="overflow-y-auto rounded p-2 ring-2 ring-gray-300 bg-gray-100" style="max-height: {iconContainerMaxH}px">
+                {#if icons.length === 0}
+                    <div class="flex items-center justify-center p-2">
+                        <span class="text-center text-gray-600">No icons</span>
+                    </div>
+                {/if}
+                <div class="grid grid-cols-6 gap-1">
+                    {#each icons as icon}
+                        <div class="relative aspect-square">
+                            <Img class="object-contain w-full h-full" src={icon.data} alt="Icon" />
+                            <button
+                                type="button"
+                                onclick={() => { if (!icon.isUsed) removeIcon(icon.id); }}
+                                class="absolute inset-0 flex items-center justify-center rounded border -m-[1px] !border-gray-700 text-xs font-semibold text-white {icon.isUsed ? 'bg-green-800/85 cursor-default' : 'bg-red-800/85 cursor-pointer'} opacity-0 hover:opacity-100"
+                            >
+                                {icon.isUsed ? 'used' : 'delete'}
+                            </button>
+                        </div>
+                    {/each}
+                </div>
+            </div>
+            <div class="pt-2">
+                <Button onclick={() => hiddenIconFileInputRef.click()}>Add Icon</Button>
+            </div>
+        </div>
     </div>
 </Modal>
 

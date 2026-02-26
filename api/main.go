@@ -58,6 +58,12 @@ func main() {
 			settings.GET("", getSettings)
 			settings.PATCH("", updateSettings)
 		}
+		icons := v1.Group("/icons")
+		{
+			icons.GET("", getIcons)
+			icons.POST("", addIcons)
+			icons.DELETE(":id", deleteIcon)
+		}
 	}
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
