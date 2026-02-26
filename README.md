@@ -30,6 +30,10 @@ Features:
 - Two rows for income and expenses (collapse into single one on smaller devices)
 - API documentation at `/swagger/index.html`
 - Currency configurable via environment variable
+- Different number formats
+- Support for multiple users
+- Upload all icons once in the settings and reuse them later
+- Auto-calculate monthly value from other payment periods (e.g. weekly, semi-annually)
 
 Frameworks used:
 
@@ -37,14 +41,16 @@ Frameworks used:
 - __API__: golang
 
 ## Screenshots
-| ![Screenshot1](doc/screenshot_1.png) | ![Screenshot2](doc/screenshot_2.png) |
-|:------------------------------------:|:------------------------------------:|
-| ![Screenshot3](doc/screenshot_3.png) | ![Screenshot4](doc/screenshot_4.png) |
+|  ![Screenshot1](doc/screenshot_1.png)  | ![Screenshot2](doc/screenshot_2.png) |
+|:--------------------------------------:|:------------------------------------:|
+|  ![Screenshot3](doc/screenshot_3.png)  | ![Screenshot4](doc/screenshot_4.png) |
+|  ![Screenshot5](doc/screenshot_5.png)  | ![Screenshot6](doc/screenshot_6.png) |
+|  ![Screenshot7](doc/screenshot_7.png)  | ![Screenshot8](doc/screenshot_8.png) |
 
 ## Settings
-![Screenshot5](doc/screenshot_5.png)
 * __Multi user support__: Allow multiple users (no login, just simple users).
 * __Number format__: Choos different number formats on your preference.
+* __Icons__: Upload and delete icons for entries
 
 ## Running the app
 
@@ -67,6 +73,8 @@ docker compose -f docker-compose-build.yaml up -d
 ```
 
 ### Tips
+#### I have a bi-monthly or semi-annually payment, what should I do?
+>Check the `not monthly` setting on the new entry dialog. Then you can select your payment period and Thrifty will automatically calculate the corresponding monthly value for you.
 #### Want to use `$` as the currency symbol?
 >Set `CURRENCY_ISO=USD` for the UI in the docker compose file and restart the UI container.
 #### How about other currencies?
