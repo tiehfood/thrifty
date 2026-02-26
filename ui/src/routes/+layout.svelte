@@ -549,7 +549,7 @@
     <FooterCopyright href="https://buymeacoffee.com/tiehfood" by="tiehfood" copyrightMessage="| All Rights Reserved |&nbsp;"/>
         <FooterLinkGroup class="flex flex-wrap items-center text-sm text-gray-500 sm:mt-0">
             {#if VERSION !== "dev"}
-                <FooterLink href="https://github.com/tiehfood/thrifty/releases/tag/{VERSION}">{VERSION}</FooterLink>
+                <FooterLink href="https://github.com/tiehfood/thrifty/releases/tag/v{VERSION}">{VERSION}</FooterLink>
             {:else}
                 <FooterLink href="https://github.com/tiehfood/thrifty">dev</FooterLink>
             {/if}
