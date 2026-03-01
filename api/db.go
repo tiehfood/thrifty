@@ -55,6 +55,19 @@ var migrations = []Migration{
 			`ALTER TABLE settings ADD COLUMN numberFormat TEXT NOT NULL DEFAULT 'eu-decimal'`,
 		},
 	},
+	{
+		Version: 4,
+		Statements: []string{
+			`CREATE TABLE IF NOT EXISTS groups (
+				id TEXT NOT NULL PRIMARY KEY,
+				name TEXT,
+				description TEXT,
+				iconId TEXT DEFAULT '00000000-0000-0000-0000-000000000000',
+				userId TEXT REFERENCES users(id),
+				FOREIGN KEY (iconId) REFERENCES icons(id))`,
+			`ALTER TABLE flows ADD COLUMN groupId TEXT REFERENCES groups(id)`,
+		},
+	},
 }
 
 func runMigrations(dbCon *sql.DB) error {
@@ -194,6 +207,15 @@ func getDbConnection(c *gin.Context) *sql.DB {
 		return nil
 	}
 	return dbCon
+}
+
+func isIconUnused(dbCon *sql.DB, iconId string) bool {
+	var total int
+	err := dbCon.QueryRow(`
+		SELECT (SELECT count(*) FROM flows WHERE iconId = ?) +
+		       (SELECT count(*) FROM groups WHERE iconId = ?)`,
+		iconId, iconId).Scan(&total)
+	return err == nil && total == 0
 }
 
 func getCurrentUserId(dbCon *sql.DB) (string, error) {

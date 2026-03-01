@@ -34,15 +34,16 @@ func getFlows(c *gin.Context) {
 
 	query := `
 SELECT
-	json_group_array(json_object('id', id, 'name', name, 'description', description, 'amount', amount, 'icon', data)) AS json_result
+	json_group_array(json_object('id', id, 'name', name, 'description', description, 'amount', amount, 'icon', data, 'groupId', groupId)) AS json_result
 FROM
 	(
 		SELECT
-			f.id, f.name as name, f.description, f.amount, icons.data
+			f.id, f.name as name, f.description, f.amount, icons.data, f.groupId
 		FROM
 			flows f
 		LEFT JOIN icons ON f.iconId = icons.id
 		WHERE f.userId = (SELECT currentUserId FROM settings WHERE id = 1)
+		AND f.groupId IS NULL
 		ORDER BY
 			amount DESC, name
 	);
@@ -98,12 +99,12 @@ func addFlow(c *gin.Context) {
 		return
 	}
 
-	query := "INSERT OR REPLACE INTO flows (id, name, description, amount, userId) VALUES (?, ?, ?, ?, ?)"
-	queryArgs := []interface{}{newFlow.ID, newFlow.Name, newFlow.Description, newFlow.Amount, currentUserId}
+	query := "INSERT OR REPLACE INTO flows (id, name, description, amount, userId, groupId) VALUES (?, ?, ?, ?, ?, ?)"
+	queryArgs := []interface{}{newFlow.ID, newFlow.Name, newFlow.Description, newFlow.Amount, currentUserId, newFlow.GroupId}
 	if newFlow.Icon != "" {
 		iconId := insertIcon(dbCon, newFlow, nil)
-		query = "INSERT OR REPLACE INTO flows (id, name, description, amount, iconId, userId) VALUES (?, ?, ?, ?, ?, ?)"
-		queryArgs = []interface{}{newFlow.ID, newFlow.Name, newFlow.Description, newFlow.Amount, iconId, currentUserId}
+		query = "INSERT OR REPLACE INTO flows (id, name, description, amount, iconId, userId, groupId) VALUES (?, ?, ?, ?, ?, ?, ?)"
+		queryArgs = []interface{}{newFlow.ID, newFlow.Name, newFlow.Description, newFlow.Amount, iconId, currentUserId, newFlow.GroupId}
 	}
 
 	execSql(dbCon, query, queryArgs...)
@@ -162,23 +163,18 @@ func updateFlow(c *gin.Context) {
 	}
 
 	if iconId != defaultIconId && hash != getMD5(newFlow.Icon) {
-		row, err = getSqlRow(dbCon, "SELECT count(id) FROM flows WHERE iconId = ?", iconId)
-		count, ok := row[0].(int64)
-		if err != nil || !ok {
-			c.JSON(http.StatusInternalServerError, HTTPError{Error: "Database error"})
-			return
-		}
-		if count == 1 {
+		execSql(dbCon, "UPDATE flows SET iconId = ? WHERE id = ?", defaultIconId, newFlow.ID)
+		if isIconUnused(dbCon, iconId) {
 			execSql(dbCon, "DELETE FROM icons WHERE id = ?", iconId)
 		}
 	}
 
-	query := "UPDATE flows SET name = ?, description = ?, amount = ? WHERE id = ?"
-	queryArgs := []interface{}{newFlow.Name, newFlow.Description, newFlow.Amount, newFlow.ID}
+	query := "UPDATE flows SET name = ?, description = ?, amount = ?, groupId = ? WHERE id = ?"
+	queryArgs := []interface{}{newFlow.Name, newFlow.Description, newFlow.Amount, newFlow.GroupId, newFlow.ID}
 	if newFlow.Icon != "" {
 		iconId := insertIcon(dbCon, newFlow, nil)
-		query = "UPDATE flows SET name = ?, description = ?, amount = ?, iconId = ? WHERE id = ?"
-		queryArgs = []interface{}{newFlow.Name, newFlow.Description, newFlow.Amount, iconId, newFlow.ID}
+		query = "UPDATE flows SET name = ?, description = ?, amount = ?, iconId = ?, groupId = ? WHERE id = ?"
+		queryArgs = []interface{}{newFlow.Name, newFlow.Description, newFlow.Amount, iconId, newFlow.GroupId, newFlow.ID}
 	}
 
 	execSql(dbCon, query, queryArgs...)
@@ -213,18 +209,9 @@ func deleteFlow(c *gin.Context) {
 		return
 	}
 
-	if iconId != defaultIconId {
-		row, err = getSqlRow(dbCon, "SELECT count(id) FROM flows WHERE iconId = ?", iconId)
-		count, ok := row[0].(int64)
-		if err != nil || !ok {
-			c.JSON(http.StatusInternalServerError, HTTPError{Error: "Database error"})
-			return
-		}
-		if count == 1 {
-			execSql(dbCon, "DELETE FROM icons WHERE id = ?", iconId)
-		}
-	}
-
 	execSql(dbCon, "DELETE FROM flows WHERE id = ?", flowId)
+	if iconId != defaultIconId && isIconUnused(dbCon, iconId) {
+		execSql(dbCon, "DELETE FROM icons WHERE id = ?", iconId)
+	}
 	c.JSON(http.StatusOK, HTTPResponse{Ok: "Flow deleted"})
 }

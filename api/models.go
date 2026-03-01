@@ -6,6 +6,7 @@ type Flow struct {
 	Description string  `json:"description"`
 	Amount      float64 `json:"amount"`
 	Icon        string  `json:"icon"`
+	GroupId     *string `json:"groupId,omitempty"`
 }
 
 type User struct {
@@ -33,6 +34,15 @@ type Icon struct {
 
 type IconRequest struct {
 	Data string `json:"data"`
+}
+
+type Group struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Icon        string  `json:"icon"`
+	Amount      float64 `json:"amount"`
+	EntryCount  int     `json:"entryCount"`
 }
 
 type HTTPResponse struct {

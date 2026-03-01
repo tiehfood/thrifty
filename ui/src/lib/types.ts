@@ -6,6 +6,16 @@ export interface Flow {
     description: string;
     amount:      number;
     icon?:       string;
+    groupId?:    string | null;
+}
+
+export interface Group {
+    id:          string | undefined;
+    name:        string;
+    description: string;
+    icon?:       string;
+    amount:      number;
+    entryCount:  number;
 }
 
 export interface Icon {
