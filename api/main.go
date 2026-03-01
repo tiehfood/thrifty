@@ -64,6 +64,14 @@ func main() {
 			icons.POST("", addIcons)
 			icons.DELETE(":id", deleteIcon)
 		}
+		groups := v1.Group("/groups")
+		{
+			groups.GET("", getGroups)
+			groups.POST("", createGroup)
+			groups.PATCH(":id", updateGroup)
+			groups.DELETE(":id", deleteGroup)
+			groups.GET(":id/flows", getGroupFlows)
+		}
 	}
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

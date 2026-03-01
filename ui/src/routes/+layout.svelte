@@ -1,12 +1,13 @@
 <script lang="ts">
     import "../app.css";
     import debounce from "debounce";
-    import type { Flow, User, PageButton } from "$lib/types";
+    import type { Flow, Group, User, PageButton } from "$lib/types";
     import { newFlowHandlerStore, editFlowHandlerStore, NUMBER_FORMATS } from "$lib/stores";
     import { sharedState } from "$lib/sharedState.svelte";
     import { settings, loadSettings, patchSettings } from "$lib/settings.svelte";
     import { users, loadUsers, createUser, updateUser, removeUser } from "$lib/users.svelte";
     import { icons, loadIcons, addIcons, removeIcon } from "$lib/icons.svelte";
+    import { groups, loadGroups, createGroup, updateGroup, removeGroup } from "$lib/groups.svelte";
     import Fox from "../icons/fox.svg?component";
     import Gear from "../icons/gear.svg?component";
     import Account from "../icons/account.svg?component";
@@ -33,6 +34,7 @@
 
     const editButton: PageButton        = { name: "Edit", clickHandle: clickEdit, color: "light" }
     const newButton: PageButton         = { name: "New Entry", clickHandle: clickNew }
+    const groupsButton: PageButton      = { name: "Groups", clickHandle: clickGroups, color: "light" }
     const dummyButton: PageButton       = { name: "", hidden: true }
     const closeButton: PageButton       = { name: "Close", clickHandle: clickClose, color: "light" }
     const modalCloseButton: PageButton  = { name: "Close", clickHandle: clickModalClose, color: "alternative" }
@@ -83,12 +85,63 @@
     let settingsLeftColHeight = $state(0);
 
     let galleryOpen = $state(false);
+    let galleryOnSelect: (data: string) => void = $state(() => {});
 
-    async function openGallery() {
+    async function openGallery(onSelect: (data: string) => void) {
         await loadIcons();
+        galleryOnSelect = onSelect;
         galleryOpen = true;
     }
-    // 96px = icon header (min-h-6 + mb-6 = 48px) + Add Icon section (pt-2 + button ≈ 48px)
+
+    let groupsOpen = $state(false);
+    let newGroupOpen = $state(false);
+    let shouldDeleteGroup = $state(false);
+    let currentGroup: Group = $state(getEmptyGroup());
+    let hiddenGroupFileInputRef: HTMLInputElement;
+    let groupDropdownOpen = $state(false);
+
+    function getEmptyGroup(): Group {
+        return { id: undefined, name: "", description: "", icon: undefined, amount: 0 };
+    }
+
+    async function clickGroups() {
+        await loadGroups();
+        groupsOpen = true;
+    }
+
+    async function handleGroupSubmit() {
+        if (!currentGroup.name.trim()) {
+            alert("Please enter a name.");
+            return;
+        }
+        if (currentGroup.id) {
+            await updateGroup(currentGroup.id, currentGroup);
+        } else {
+            await createGroup(currentGroup);
+        }
+        sharedState.reloadTrigger++;
+        newGroupOpen = false;
+    }
+
+    async function handleDeleteGroup(id: string) {
+        await removeGroup(id);
+        sharedState.reloadTrigger++;
+        shouldDeleteGroup = false;
+        if (groups.length === 0) groupsOpen = false;
+    }
+
+    function handleGroupFileUpload(event: Event) {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e: ProgressEvent) => {
+                const svg = (e.target as FileReader).result ?? '';
+                currentGroup.icon = `data:image/svg+xml;base64,${btoa(svg.toString())}`;
+            };
+            reader.readAsText(file);
+        }
+        (event.target as HTMLInputElement).value = '';
+    }
     let iconContainerMaxH = $derived(
         settingsLeftColHeight > 0 ? Math.max(0, settingsLeftColHeight - 96) : 272
     );
@@ -120,14 +173,15 @@
     }
 
     function clickEdit() {
-        buttons = [dummyButton, newButton, closeButton];
+        buttons = [dummyButton, newButton, groupsButton, closeButton];
         sharedState.isEditMode = true;
     }
 
-    function clickNew() {
+    async function clickNew() {
         currentFlow = getEmptyFlow();
         notMonthly = false;
         period = 'weekly';
+        await loadGroups();
         flowModalOpen = true;
     }
 
@@ -171,6 +225,7 @@
         if (newFlowHandler) {
             await newFlowHandler(currentFlow);
         }
+        sharedState.reloadTrigger++;
         flowModalOpen = false;
         currentFlow = getEmptyFlow();
         notMonthly = false;
@@ -210,6 +265,7 @@
 
     async function editFlowHandler(flow: Flow) {
         currentFlow = flow;
+        await loadGroups();
         flowModalOpen = true;
     }
 
@@ -330,10 +386,39 @@
             <span>Name</span>
             <Input type="text" placeholder="Enter name" bind:value={currentFlow.name}/>
         </Label>
-        <Label class="space-y-2 mb-6">
-            <span>Description</span>
-            <Input type="text" placeholder="Enter description (optional)" bind:value={currentFlow.description}/>
-        </Label>
+        <div class="grid grid-cols-2 gap-8 mb-6">
+            <Label class="space-y-2">
+                <span>Description</span>
+                <Input type="text" placeholder="Enter description (optional)" bind:value={currentFlow.description}/>
+            </Label>
+            <Label class="space-y-2">
+                <span>Group (optional)</span>
+                {#if groups.length === 0}
+                    <p class="text-sm text-gray-500 py-2">No groups</p>
+                {:else}
+                    <Button type="button" color="light" class="w-full flex justify-between items-center px-2.5!">
+                        {groups.find(g => g.id === currentFlow.groupId)?.name ?? 'None'}
+                        <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                        </svg>
+                    </Button>
+                    <Dropdown simple bind:isOpen={groupDropdownOpen} middlewares={[sameWidth]}>
+                        <DropdownItem
+                            onclick={() => { currentFlow.groupId = undefined; groupDropdownOpen = false; }}
+                            class={!currentFlow.groupId ? 'font-semibold text-primary-600' : ''}
+                            style="padding-left: 0.625rem; padding-right: 0.625rem;"
+                        >None</DropdownItem>
+                        {#each groups as group}
+                            <DropdownItem
+                                onclick={() => { currentFlow.groupId = group.id; groupDropdownOpen = false; }}
+                                class={currentFlow.groupId === group.id ? 'font-semibold text-primary-600' : ''}
+                                style="padding-left: 0.625rem; padding-right: 0.625rem;"
+                            >{group.name}</DropdownItem>
+                        {/each}
+                    </Dropdown>
+                {/if}
+            </Label>
+        </div>
         <div class="grid grid-cols-2 gap-8">
             <div class="space-y-2 mb-6">
                 <Label for="numberInput">Amount</Label>
@@ -374,7 +459,7 @@
                         {/if}
                     </button>
                 </div>
-                <Button type="button" color="alternative" onclick={openGallery}>Gallery</Button>
+                <Button type="button" color="alternative" onclick={() => openGallery((data) => { currentFlow.icon = data; })}>Gallery</Button>
             </div>
         </div>
         <div class="flex p-0 pt-4 space-x-3">
@@ -399,7 +484,7 @@
                 {#each icons as icon}
                     <button
                         type="button"
-                        onclick={() => { currentFlow.icon = icon.data; galleryOpen = false; }}
+                        onclick={() => { galleryOnSelect(icon.data); galleryOpen = false; }}
                         class="relative h-10 w-10 flex-shrink-0 rounded cursor-pointer hover:ring-2 hover:ring-primary-400 {currentFlow.icon === icon.data ? 'ring-2 ring-primary-500' : ''}"
                     >
                         <Img class="object-contain w-full h-full" src={icon.data} alt="Icon" />
@@ -410,6 +495,74 @@
     {/if}
     <div class="flex p-0 pt-4">
         <Button onclick={() => galleryOpen = false} color="alternative">Close</Button>
+    </div>
+</Modal>
+
+<Modal title="Groups" bind:open={groupsOpen} outsideclose>
+    <div>
+        {#each groups as group}
+            <div class="p-1">
+                <Card size="sm" class="mx-auto relative p-3">
+                    <div class="flex items-center space-x-4 rtl:space-x-reverse px-2">
+                        <Img class="justify-center rounded-none w-10 h-10 flex-shrink-0 bg-white object-contain" src={group.icon} alt="Icon" />
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">{group.name}</p>
+                            <p class="text-xs text-gray-500 truncate">{group.description}</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onclick={() => { if (!shouldDeleteGroup) { currentGroup = { ...group }; newGroupOpen = true; } }}
+                        class="absolute inset-0 flex items-center justify-center rounded-lg border -m-[1px] !border-gray-700 {shouldDeleteGroup ? 'bg-red-800/85' : 'bg-green-800/85'} opacity-0 hover:opacity-100 cursor-pointer focus:outline-none"
+                    >
+                        <span class="text-lg font-bold text-gray-100 truncate">{shouldDeleteGroup ? 'Delete' : 'Edit'}</span>
+                        <Indicator
+                            class="bg-red-600 hover:bg-red-700"
+                            border
+                            onmouseenter={() => shouldDeleteGroup = true}
+                            onmouseleave={() => shouldDeleteGroup = false}
+                            onclick={() => handleDeleteGroup(group.id as string)}
+                            size="xl"
+                            placement="top-right"
+                        >
+                            <span class="text-white text-xs font-bold">—</span>
+                        </Indicator>
+                    </button>
+                </Card>
+            </div>
+        {/each}
+    </div>
+    <div class="flex p-0 pt-4 space-x-3">
+        <Button onclick={() => { currentGroup = getEmptyGroup(); newGroupOpen = true; }}>New Group</Button>
+        <Button onclick={() => groupsOpen = false} color="alternative">Close</Button>
+    </div>
+</Modal>
+
+<Modal title={currentGroup.id ? "Edit group" : "Add new group"} bind:open={newGroupOpen} outsideclose>
+    <Label class="space-y-2 mb-6">
+        <span>Name</span>
+        <Input type="text" placeholder="Enter name" bind:value={currentGroup.name}/>
+    </Label>
+    <Label class="space-y-2 mb-6">
+        <span>Description</span>
+        <Input type="text" placeholder="Enter description (optional)" bind:value={currentGroup.description}/>
+    </Label>
+    <div class="flex items-center justify-center gap-2 self-start mb-6">
+        <div class="flex justify-center">
+            <input type="file" accept=".svg" onchange={handleGroupFileUpload} class="hidden" bind:this={hiddenGroupFileInputRef} />
+            <button type="button" onclick={() => hiddenGroupFileInputRef.click()} class="relative flex {currentGroup.icon === undefined ? 'items-center' : ''} justify-center rounded p-1 ring-2 ring-gray-300 {currentGroup.icon === undefined ? 'bg-gray-100' : 'bg-white'} aspect-square h-24 w-24 m-1 flex-shrink-0 cursor-pointer">
+                {#if currentGroup.icon === undefined}
+                    <span class="text-center text-gray-600">Icon (optional)</span>
+                {:else}
+                    <Img class="object-contain w-full h-full" src={currentGroup.icon} alt="Icon" />
+                {/if}
+            </button>
+        </div>
+        <Button type="button" color="alternative" onclick={() => openGallery((data) => { currentGroup.icon = data; })}>Gallery</Button>
+    </div>
+    <div class="flex p-0 pt-4 space-x-3">
+        <Button onclick={handleGroupSubmit}>{currentGroup.id ? 'Edit' : 'Add'}</Button>
+        <Button onclick={() => newGroupOpen = false} color="alternative">Close</Button>
     </div>
 </Modal>
 

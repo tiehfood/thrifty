@@ -34,6 +34,7 @@ Features:
 - Support for multiple users
 - Upload all icons once in the settings and reuse them later
 - Auto-calculate monthly value from other payment periods (e.g. weekly, semi-annually)
+- Use groups like _streaming_ to group multiple entries for a cleaner dashboard
 
 Frameworks used:
 
@@ -41,11 +42,13 @@ Frameworks used:
 - __API__: golang
 
 ## Screenshots
-|  ![Screenshot1](doc/screenshot_1.png)  | ![Screenshot2](doc/screenshot_2.png) |
-|:--------------------------------------:|:------------------------------------:|
-|  ![Screenshot3](doc/screenshot_3.png)  | ![Screenshot4](doc/screenshot_4.png) |
-|  ![Screenshot5](doc/screenshot_5.png)  | ![Screenshot6](doc/screenshot_6.png) |
-|  ![Screenshot7](doc/screenshot_7.png)  | ![Screenshot8](doc/screenshot_8.png) |
+| ![Screenshot01](doc/screenshot_01.png) | ![Screenshot02](doc/screenshot_02.png) |
+|:--------------------------------------:|:--------------------------------------:|
+| ![Screenshot03](doc/screenshot_03.png) | ![Screenshot04](doc/screenshot_04.png) |
+| ![Screenshot05](doc/screenshot_05.png) | ![Screenshot06](doc/screenshot_06.png) |
+| ![Screenshot07](doc/screenshot_07.png) | ![Screenshot08](doc/screenshot_08.png) |
+| ![Screenshot09](doc/screenshot_09.png) | ![Screenshot10](doc/screenshot_10.png) |
+
 
 ## Settings
 * __Multi user support__: Allow multiple users (no login, just simple users).
