@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@number-flow/svelte':
-        specifier: 0.3.11
-        version: 0.3.11(svelte@5.53.2)
+        specifier: 0.4.0
+        version: 0.4.0(svelte@5.53.2)
       debounce:
         specifier: 3.0.0
         version: 3.0.0
@@ -242,8 +242,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@number-flow/svelte@0.3.11':
-    resolution: {integrity: sha512-x9BpkW3YZpEYx3gq4i81PJrbQ6oWJrWcv7xtaRFTu0DQuFjreCO4w1TFIOzg7jtkThWQcyhv+jBS8YkaVqG6Iw==}
+  '@number-flow/svelte@0.4.0':
+    resolution: {integrity: sha512-9tnowrlZlBV3IVe3Gm1V7yXSf4Ugag2k7iW45xqb04HXSa1ApEImopvGWAjJpHDvS849o+UCb0YH461Mtde9lA==}
     peerDependencies:
       svelte: ^4 || ^5
 
@@ -838,8 +838,8 @@ packages:
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
 
-  number-flow@0.5.10:
-    resolution: {integrity: sha512-Ss6fU7zZgfAlhT4KFcUVOafStQVHs22xTx7/Fm6nj9j9WUREYlQpBgFX+vzdnB2PpGPTrtdGZPJou6Yyu/uDeA==}
+  number-flow@0.6.0:
+    resolution: {integrity: sha512-K8flNq2Wqus53vjp/btVo3qXFkagF8dIdYavreBfE7hlvFFG/b1HMGEH6nZL+mlrJ+4lbLP9OmPv3t2rmRkpSQ==}
 
   obug@2.1.1:
     resolution: {integrity: sha512-uTqF9MuPraAQ+IsnPf366RG4cP9RtUi7MLO1N3KEc+wb0a6yKpeL0lmk2IB1jY5KHPAlTc6T/JRdC/YqxHNwkQ==}
@@ -1111,10 +1111,10 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@number-flow/svelte@0.3.11(svelte@5.53.2)':
+  '@number-flow/svelte@0.4.0(svelte@5.53.2)':
     dependencies:
       esm-env: 1.2.2
-      number-flow: 0.5.10
+      number-flow: 0.6.0
       svelte: 5.53.2
 
   '@polka/url@1.0.0-next.29': {}
@@ -1643,7 +1643,7 @@ snapshots:
     dependencies:
       boolbase: 1.0.0
 
-  number-flow@0.5.10:
+  number-flow@0.6.0:
     dependencies:
       esm-env: 1.2.2
 
