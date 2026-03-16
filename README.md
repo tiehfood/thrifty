@@ -14,6 +14,9 @@
   <a href="https://github.com/tiehfood/thrifty">
     <img alt="Stars" src="https://img.shields.io/github/stars/tiehfood/thrifty?style=flat&label=github+stars"/>
   </a>
+  <a href="https://www.buymeacoffee.com/tiehfood">
+    <img alt="ByMeACoffee" src="https://raw.githubusercontent.com/pachadotdev/buymeacoffee-badges/main/bmc-orange.svg"/>
+  </a>
 </p>
 
 # Thrifty
